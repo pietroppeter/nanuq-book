@@ -160,8 +160,11 @@ replaced by the corresponding values of the expression inside the function `then
 values that evaluate to `False` are replaced by the corresponding values of the expression
 inside the function `otherwise` or `null`, if `otherwise` is not provided.
 
-`when` is a Nim keyword, so as the first call of an expression it needs backticks. Integer
-division, Python's `//`, is `div`.
+In Nanuq the idiomatic way to write this is the `choose` macro, which takes a Nim
+`if`/`elif`/`else` and builds the same `when`/`then`/`otherwise` chain. The chain itself is
+also available: `when` is a Nim keyword, so as the first call of an expression it needs
+backticks, as in `` `when`(cond).then(a).otherwise(b) ``. Integer division, Python's `//`,
+is `div`.
 
 The example below applies one step of the
 [Collatz conjecture](https://en.wikipedia.org/wiki/Collatz_conjecture) to the numbers in
@@ -178,12 +181,12 @@ df.select(
 )
 """:
   nbCode:
-    let collatz = df.select(
-      col("nrs"),
-      `when`(col("nrs") mod 2 == 1)  # Is the number odd?
-        .then(3 * col("nrs") + 1)     # If so, multiply by 3 and add 1.
-        .otherwise(col("nrs") div 2)  # If not, divide by 2.
-        .alias("Collatz"))
+    let step = choose:
+      if col("nrs") mod 2 == 1:  # Is the number odd?
+        3 * col("nrs") + 1       # If so, multiply by 3 and add 1.
+      else:
+        col("nrs") div 2         # If not, divide by 2.
+    let collatz = df.select(col("nrs"), step.alias("Collatz"))
     nbShow collatz
 
 nbText: """
@@ -191,8 +194,7 @@ You can also emulate a chain of an arbitrary number of conditionals, akin to Pyt
 `elif` statement, by chaining an arbitrary number of consecutive blocks of
 `.when(...).then(...)`. In those cases, and for each given value, Polars will only consider
 a replacement expression that is deeper within the chain if the previous predicates all
-failed for that value. Nanuq also has the `choose` macro, which writes the same chain as an
-`if`/`elif`/`else`.
+failed for that value. With `choose`, that is simply an `if` with more `elif` branches.
 """
 
 bookSave()

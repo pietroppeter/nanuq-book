@@ -2,7 +2,10 @@ name: Book
 
 # Builds the book on every push and pull request, deploys it to GitHub Pages from main,
 # and once a week (or on demand) builds it against Nanuq's main branch to catch API
-# changes early.
+# changes early. Rust is never built here: config.nims compiles with
+# -d:nanuqLib=prebuilt, so the build fails unless Nanuq's lib version is released
+# (lib-v<version> on GitHub). The weekly build against main fails while main is on a
+# -dev lib version.
 on:
   push:
     branches: [main]
@@ -21,7 +24,6 @@ jobs:
     runs-on: ubuntu-24.04  # still ships libpcre3, which nimib's markdown renderer needs
     env:
       NANUQ_MAIN: ${{ github.event_name == 'schedule' || inputs.nanuq-main == true }}
-      LIB_DIR: nanuq/src/rust/target/release
     steps:
       - uses: actions/checkout@v4
         with:
@@ -30,23 +32,6 @@ jobs:
         if: env.NANUQ_MAIN == 'true'
         run: git -C nanuq fetch --depth 1 origin main && git -C nanuq checkout FETCH_HEAD
       - run: git -C nanuq log --oneline -1
-      # The Polars wrapper is the slow part (~10 minutes cold): cache the finished
-      # library by a hash of its sources, and reuse compiled dependencies on a miss.
-      - id: key
-        run: echo "key=nanuq-ffi-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('nanuq/src/rust/Cargo.toml', 'nanuq/src/rust/Cargo.lock', 'nanuq/src/rust/src/**') }}" >> "$GITHUB_OUTPUT"
-      - id: lib-cache
-        uses: actions/cache@v4
-        with:
-          path: ${{ env.LIB_DIR }}/libnanuq_ffi.a
-          key: ${{ steps.key.outputs.key }}
-      - if: steps.lib-cache.outputs.cache-hit != 'true'
-        uses: dtolnay/rust-toolchain@stable
-      - if: steps.lib-cache.outputs.cache-hit != 'true'
-        uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: nanuq/src/rust
-      - if: steps.lib-cache.outputs.cache-hit != 'true'
-        run: cargo build --release --manifest-path nanuq/src/rust/Cargo.toml
       - uses: jiro4989/setup-nim-action@v2
         with:
           nim-version: "2.2.4"

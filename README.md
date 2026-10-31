@@ -21,18 +21,27 @@ CC BY-SA source makes its chapter CC BY-SA. Sources without a licence are not co
 
 Nanuq is the git submodule in `nanuq/`, pinned to a commit; `config.nims` puts
 `nanuq/src` on the path. CI builds the book against the pinned commit, and once a week
-(or on demand) against Nanuq's main branch, to catch API changes early. To move the pin:
+(or on demand) against Nanuq's main branch, to catch API changes early.
+
+The book never builds Nanuq's Rust half: `config.nims` compiles with
+`-d:nanuqLib=prebuilt`, so the Polars wrapper library is downloaded from Nanuq's
+`lib-v<version>` release, and the build fails if that version is not released. Pin the
+submodule to a commit whose lib version is released (usually a Nanuq release tag). The
+weekly build against main fails while main has a `-dev` lib version. To move the pin:
 
 ```sh
-git -C nanuq fetch origin main && git -C nanuq checkout origin/main
-git add nanuq && git commit -m "Pin Nanuq to <commit>"
+git -C nanuq fetch origin tag v0.2.0 && git -C nanuq checkout v0.2.0
+git add nanuq && git commit -m "Pin Nanuq to v0.2.0"
 ```
+
+To try an unreleased Nanuq locally, build its library first
+(`nimble buildRust` in `nanuq/`): a library in `nanuq/src/rust/target/release` is used
+instead of the download.
 
 ## Building
 
-Needs Nim 2.x, [uv](https://docs.astral.sh/uv/), Rust (Nanuq's development versions build
-the Polars wrapper from source, which takes about 10 minutes the first time) and libpcre
-(for nimib's markdown).
+Needs Nim 2.x, [uv](https://docs.astral.sh/uv/), `curl` and `tar` (to download Nanuq's
+prebuilt library) and libpcre (for nimib's markdown). No Rust needed.
 
 ```sh
 git clone --recurse-submodules https://github.com/pietroppeter/nanuq-book

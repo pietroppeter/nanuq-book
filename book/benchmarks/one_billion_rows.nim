@@ -112,8 +112,8 @@ nbText: resultsTable()
 nbText: """
 ## Running it on your machine
 
-From the root of a clone of the book, with Nim (and nimble), uv and git (the script
-installs the book's dependencies first) (it generates the data the first
+From the root of a clone of the book, with Nim, nimble, uv and git (the script
+installs the book's dependencies first; it generates the data the first
 time, about 13 GB for one billion rows, in `bench-data/`, which git ignores):
 
 ```sh

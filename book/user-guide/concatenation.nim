@@ -15,17 +15,21 @@ There are a number of ways to concatenate data from separate DataFrames:
 - two dataframes with **non-overlapping columns** can be **horizontally** concatenated to
   make a **wider** dataframe
 - two dataframes with **different numbers of rows and columns** can be **diagonally**
-  concatenated to make a dataframe which might be longer and/or wider. Where column names
+  concatenated to make a dataframe which might be longer and/ or wider. Where column names
   overlap values will be vertically concatenated. Where column names do not overlap new rows
   and columns will be added. Missing values will be set as `null`
+"""
 
+nanuq """
 In Nanuq `concat` takes the frames as an array and the method as a value of the enum
 `ConcatMethod`, where Python uses strings (`how="vertical"`).
+"""
 
-## Vertical concatenation: getting longer
+nbText: """
+## Vertical concatenation - getting longer
 
-In a vertical concatenation you combine all of the rows from a list of DataFrames into a
-single longer DataFrame.
+In a vertical concatenation you combine all of the rows from a list of `DataFrames` into a
+single longer `DataFrame`.
 """
 
 tabs """
@@ -33,8 +37,7 @@ import polars as pl
 
 df_v1 = pl.DataFrame({"a": [1], "b": [3]})
 df_v2 = pl.DataFrame({"a": [2], "b": [4]})
-df_vertical_concat = pl.concat([df_v1, df_v2], how="vertical")
-df_vertical_concat
+pl.concat([df_v1, df_v2], how="vertical")
 """:
   nbCode:
     import nanuq
@@ -42,57 +45,68 @@ df_vertical_concat
     let dfV1 = newDataFrame(series("a", [1]), series("b", [3]))
     let dfV2 = newDataFrame(series("a", [2]), series("b", [4]))
     let dfVerticalConcat = concat([dfV1, dfV2], how = Vertical)
-  nbShow dfVerticalConcat
+    nbShow dfVerticalConcat
 
 nbText: """
 Vertical concatenation fails when the dataframes do not have the same column names.
 
-## Horizontal concatenation: getting wider
+## Horizontal concatenation - getting wider
 
-In a horizontal concatenation you combine all of the columns from a list of DataFrames into
-a single wider DataFrame.
+In a horizontal concatenation you combine all of the columns from a list of `DataFrames`
+into a single wider `DataFrame`.
 """
 
 tabs """
 df_h1 = pl.DataFrame({"l1": [1, 2], "l2": [3, 4]})
 df_h2 = pl.DataFrame({"r1": [5, 6], "r2": [7, 8], "r3": [9, 10]})
-df_horizontal_concat = pl.concat([df_h1, df_h2], how="horizontal")
-df_horizontal_concat
+pl.concat([df_h1, df_h2], how="horizontal")
 """:
   nbCode:
     let dfH1 = newDataFrame(series("l1", [1, 2]), series("l2", [3, 4]))
     let dfH2 = newDataFrame(series("r1", [5, 6]), series("r2", [7, 8]), series("r3", [9, 10]))
     let dfHorizontalConcat = concat([dfH1, dfH2], how = Horizontal)
-  nbShow dfHorizontalConcat
+    nbShow dfHorizontalConcat
 
 nbText: """
-Horizontal concatenation fails when dataframes have overlapping columns. Python Polars
-also offers `how="horizontal_extend"` for dataframes of different heights, which pads the
-shorter columns with `null`; Nanuq does not have it yet.
+Horizontal concatenation fails when dataframes have overlapping columns. Moreover, it is
+required that both dataframes have the same height. To combine dataframes with different
+height, use `how="horizontal_extend"`, which pads shorter columns with `null` values at the
+end to match the height of the longest dataframe.
+"""
 
-## Diagonal concatenation: getting longer, wider and `null`ier
+nanuq """
+Nanuq does not have `how="horizontal_extend"` yet, so the original's example of it is left
+out.
+"""
 
-In a diagonal concatenation you combine all of the rows and columns from a list of
-DataFrames into a single longer and/or wider DataFrame.
+nbText: """
+## Diagonal concatenation - getting longer, wider and `null`ier
+
+In a diagonal concatenation you combine all of the row and columns from a list of
+`DataFrames` into a single longer and/or wider `DataFrame`.
 """
 
 tabs """
 df_d1 = pl.DataFrame({"a": [1], "b": [3]})
 df_d2 = pl.DataFrame({"a": [2], "d": [4]})
-df_diagonal_concat = pl.concat([df_d1, df_d2], how="diagonal")
-df_diagonal_concat
+pl.concat([df_d1, df_d2], how="diagonal")
 """:
   nbCode:
     let dfD1 = newDataFrame(series("a", [1]), series("b", [3]))
     let dfD2 = newDataFrame(series("a", [2]), series("d", [4]))
     let dfDiagonalConcat = concat([dfD1, dfD2], how = Diagonal)
-  nbShow dfDiagonalConcat
+    nbShow dfDiagonalConcat
 
 nbText: """
 Diagonal concatenation generates nulls when the column names do not overlap.
 
 When the dataframe shapes do not match and we have an overlapping semantic key then
 [we can join the dataframes](joins.html) instead of concatenating them.
+"""
+
+nanuq """
+The original ends with a section on rechunking. Nanuq's `concat` has no `rechunk` option
+yet, so it is left out.
 """
 
 bookSave()

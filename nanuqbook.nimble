@@ -16,6 +16,8 @@ requires "nimpy >= 0.2.1"  # runs the Python side of the tabs
 
 # Tasks
 
+import std/strutils
+
 task genbook, "Build the book into docs/ (run it with `uv run nimble genbook`, for the Python side)":
   # Fetch Nanuq's prebuilt library once, up front: nimibook compiles the chapters in
   # parallel, and on a cold cache each would download and unpack it at the same time
@@ -23,6 +25,18 @@ task genbook, "Build the book into docs/ (run it with `uv run nimble genbook`, f
   # (nim check would not do: it skips the download commands)
   exec "nim c --compileOnly --hints:off --nimcache:nimcache/warmup nanuq/src/nanuq.nim"
   exec "nim r -d:release --hints:off nbook.nim init"
+  # fresh nimibook assets, plus the book's look and script from theme/ (in the
+  # assets, so pages written in Markdown get them too)
+  exec "nim r -d:release --hints:off nbook.nim update"
+  # The styles go at the end of chrome.css, the last stylesheet every page loads, so
+  # they win over nimibook's; their font @import has to stay at the top of the file.
+  let css = readFile("theme/nanuq-book.css")
+  let i = css.find("@import")
+  let j = css.find('\n', i)
+  writeFile "docs/assets/css/chrome.css",
+    css[i .. j] & readFile("docs/assets/css/chrome.css") & "\n" & css[0 ..< i] & css[j + 1 .. ^1]
+  writeFile "docs/assets/js/book.js",
+    readFile("docs/assets/js/book.js") & "\n" & readFile("theme/nanuq-book.js")
   # chapters run from docs/ and read data from data/ there, which is also where
   # readers of the site can download it
   cpDir "data", "docs/data"

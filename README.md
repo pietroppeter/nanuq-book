@@ -54,10 +54,12 @@ uv run nimble genbook      # writes the site to docs/
 Each example is shown in two tabs, Nim first and then the original Python, and both run
 when the book is built: the Python code runs through [nimpy](https://github.com/yglukhov/nimpy)
 with the Python Polars version pinned in `pyproject.toml`. A Python cell that ends with an
-expression shows its value, as in a notebook.
+expression shows its value, as in a notebook. When it shows a DataFrame, the build
+checks that the Nim tab shows the same table (its last one, compared as HTML) and fails
+if they differ.
 
 The look follows the Nanuq dev log (its palette, fonts and code cells) on top of
-nimibook's layout; the theme is in `book/nanuqbook.nim`, and every page ends with a
+nimibook's layout; the styles and script are in `theme/`, and every Nim page ends with a
 "Show source" button.
 
 ## Adding a chapter
@@ -66,6 +68,13 @@ nimibook's layout; the theme is in `book/nanuqbook.nim`, and every page ends wit
 2. Write `book/<source>/<page>.nim` (Nim module names can't contain `-`): start with
    `import nanuqbook`, `bookInit()` and `attribution` (see `book/nanuqbook.nim`), end with
    `bookSave()` (it adds the "Show source" button), and give each example as
-   `tabs "<python code>": <nbCode and nbShow blocks>`. Python with no Nim version yet goes
-   in `python "<code>"`. Say which sections were left out and why.
-3. Add the chapter to `nbook.nim`, and the source to `book/licences.nim` and `licenses/`.
+   `tabs "<python code>": <nbCode blocks>`, with `nbShow` inside the `nbCode` so readers
+   see it. Python with no Nim version yet goes in `python "<code>"`. Keep the text of the
+   original as it is; every remark of the book (how Nanuq differs, what it lacks, which
+   sections were left out and why) goes in `nanuq "<markdown>"`, which renders as a
+   separate "🐻‍❄️ Nanuq" box.
+3. Add the chapter to `nbook.nim`, and the source to `book/licences.md` and `licenses/`.
+
+Pages that run no code (section intros, the licences page) are plain Markdown (`.md`),
+which nimibook renders as they are. The look and the tabs/theme script live in `theme/`
+and are added to nimibook's assets by `nimble genbook`, so they apply to every page.

@@ -36,7 +36,7 @@ greetings.filter(pl.col("speakers_millions") > 100)
       series("language", ["English", "Italian", "French"]),
       series("hello", ["Hello, world!", "Ciao, mondo!", "Bonjour, le monde !"]),
       series("speakers_millions", [1500, 68, 310]))
-  nbShow greetings.filter(col("speakers_millions") > 100)
+    nbShow greetings.filter(col("speakers_millions") > 100)
 
 nbText: """
 ## Sources and licences

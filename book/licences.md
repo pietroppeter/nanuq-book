@@ -8,7 +8,7 @@ licence allows it; sources without a licence are used as a list of topics at mos
 
 | Source | Licence | Chapters | Data |
 | ------ | ------- | -------- | ---- |
-| [Polars user guide](https://docs.pola.rs/user-guide/), by the Polars contributors | [MIT](https://github.com/pola-rs/polars/blob/main/LICENSE) ([copy](https://github.com/pietroppeter/nanuq-book/blob/main/licenses/polars-MIT.txt)) | Joins, Concatenation, Expression expansion | `data/polars/` (Monopoly properties, from the Polars repository, MIT) |
+| [Polars user guide](https://docs.pola.rs/user-guide/), by the Polars contributors | [MIT](https://github.com/pola-rs/polars/blob/main/LICENSE) ([copy](https://github.com/pietroppeter/nanuq-book/blob/main/licenses/polars-MIT.txt)) | Basic operations, Expression expansion, Casting, Missing data, Joins, Concatenation | `data/polars/` (Monopoly properties, from the Polars repository, MIT) |
 
 The datasets used by the chapters are in the [data](https://github.com/pietroppeter/nanuq-book/tree/main/data)
 folder, one subfolder per source, under the licence of that source.

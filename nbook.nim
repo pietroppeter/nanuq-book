@@ -9,6 +9,7 @@ var book = initBookWithToc:
     entry("Expression expansion", "expression_expansion")
     entry("Casting", "casting")
     entry("Missing data", "missing_data")
+    entry("Strings", "strings")
     entry("Joins", "joins")
     entry("Concatenation", "concatenation")
     entry("CSV", "csv")
@@ -18,6 +19,7 @@ var book = initBookWithToc:
     entry("Joining and concatenating", "joining_and_concatenating")
   section("Polars Cookbook", "polars-cookbook/index.md"):
     entry("Getting started", "getting_started")
+    entry("String manipulations", "string_manipulations")
     entry("Debugging chained operations", "debugging_chains")
   section("Benchmarks", "benchmarks/index.md"):
     entry("One Billion Row Challenge", "one_billion_rows")

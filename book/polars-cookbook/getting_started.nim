@@ -4,7 +4,8 @@ bookInit()
 nbText: "# Getting started"
 
 attribution polarsCookbook(1, "Getting Started with Python Polars",
-  "Data is read from `data/polars-cookbook/`. Left out: `from_numpy`, most of the Series " &
+  "Data is read from `data/polars-cookbook/`. `str.to_titlecase` is `str.to_uppercase` " &
+  "here. Left out: `from_numpy`, most of the Series " &
   "recipe, `flags`, `show_graph` (it draws the query plan with Graphviz), and the recipe on " &
   "data larger than memory, which needs a Chicago taxi trips file that the book does not ship.")
 
@@ -99,14 +100,14 @@ constructor:
 
 tabs """
 s = pl.Series('col', [1,2,3,4,5])
-s.head()
+s.head().to_frame()
 """:
   nbCode:
     let s = series("col", [1, 2, 3, 4, 5])
     nbShow newDataFrame(s).head()
 
 nanuq """
-Nanuq shows the Series as a one-column frame. It has no `to_series` and `get_column`
+Nanuq shows the Series as a one-column frame, so the Python side does too (`to_frame`). It has no `to_series` and `get_column`
 returning a Series yet; to get a column's values out, use `toList`
 (`df.toList("Age", Option[float])`).
 """
@@ -173,7 +174,7 @@ print(
     lf
     .select(pl.col('Name', 'Age'))
     .explain()
-    , sep='\\n'
+    , sep='\n'
 )
 """:
   nbCode:
@@ -317,11 +318,17 @@ df.with_row_index().head()
 
 nbText: "An expression on an existing column replaces it:"
 
+nanuq """
+The recipe title-cases the `Sex` column with `str.to_titlecase()`. Nanuq does not have
+`toTitlecase` yet (Rust Polars has it behind its `nightly` feature), so this page
+upper-cases instead, with `str.to_uppercase()` on the Python side too.
+"""
+
 tabs """
-df.with_columns(pl.col('Sex').str.to_titlecase()).head()
+df.with_columns(pl.col('Sex').str.to_uppercase()).head()
 """:
   nbCode:
-    nbShow df.withColumns(col.Sex.str.toTitlecase).head()
+    nbShow df.withColumns(col.Sex.str.toUppercase).head()
 
 tabs """
 df.with_columns(
@@ -337,7 +344,7 @@ tabs """
 df.drop(['Pclass', 'Name', 'SibSp', 'Parch', 'Ticket', 'Cabin', 'Embarked']).head()
 """:
   nbCode:
-    nbShow df.drop("Pclass", "Name", "SibSp", "Parch", "Ticket", "Cabin", "Embarked").head()
+    nbShow df.drop(["Pclass", "Name", "SibSp", "Parch", "Ticket", "Cabin", "Embarked"]).head()
 
 tabs """
 df.select(['PassengerId', 'Survived', 'Sex', 'Age', 'Fare']).head()
@@ -355,7 +362,7 @@ best_practice = (
     df.with_columns(
         pl.col('Fare').max().alias('Max Fare'),
         pl.lit('Titanic'),
-        pl.col('Sex').str.to_titlecase()
+        pl.col('Sex').str.to_uppercase()
     )
 )
 best_practice.head()
@@ -364,7 +371,7 @@ best_practice.head()
     let bestPractice = df.withColumns(
       col.Fare.max.alias("Max Fare"),
       lit("Titanic"),
-      col.Sex.str.toTitlecase)
+      col.Sex.str.toUppercase)
     nbShow bestPractice.head()
 
 tabs """
@@ -372,7 +379,7 @@ not_so_good_practice = (
     df
     .with_columns(pl.col('Fare').max().alias('Max Fare'))
     .with_columns(pl.lit('Titanic'))
-    .with_columns(pl.col('Sex').str.to_titlecase())
+    .with_columns(pl.col('Sex').str.to_uppercase())
 )
 not_so_good_practice.head()
 """:
@@ -380,7 +387,7 @@ not_so_good_practice.head()
     let notSoGoodPractice = df
       .withColumns(col.Fare.max.alias("Max Fare"))
       .withColumns(lit("Titanic"))
-      .withColumns(col.Sex.str.toTitlecase)
+      .withColumns(col.Sex.str.toUppercase)
     nbShow notSoGoodPractice.head()
 
 nbText: """
@@ -399,9 +406,9 @@ df = df.sort(by=['Age', 'Name'])
 df.head()
 """:
   nbCode:
-    let cols = ["Name", "Sex", "Age", "Fare", "Cabin", "Pclass", "Survived"]
+    let cols = col("Name", "Sex", "Age", "Fare", "Cabin", "Pclass", "Survived")
 
-    var steps = df.select(col(cols))
+    var steps = df.select(cols)
     steps = steps.filter(col.Age >= 35)
     steps = steps.sort(["Age", "Name"])
     nbShow steps.head()
@@ -418,10 +425,15 @@ df.head()
 """:
   nbCode:
     let chained = df
-      .select(col(cols))
+      .select(cols)
       .filter(col.Age >= 35)
       .sort(["Age", "Name"])
     nbShow chained.head()
+
+nanuq """
+In Nim, `cols` is a selector, `col` with several names, rather than a list of names: `col`
+does not take an array yet.
+"""
 
 nanuq """
 Nim's method call syntax chains without the parentheses Python needs: a line that starts

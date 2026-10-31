@@ -9,7 +9,22 @@ name: Book
 on:
   push:
     branches: [main]
+    # files no chapter reads (Markdown chapters live in book/, so not **.md)
+    paths-ignore:
+      - README.md
+      - LICENSE
+      - licenses/**
+      - scripts/**
+      - .gitignore
+      - .claude/**
   pull_request:
+    paths-ignore:
+      - README.md
+      - LICENSE
+      - licenses/**
+      - scripts/**
+      - .gitignore
+      - .claude/**
   schedule:
     - cron: "0 6 * * 1"  # Mondays
   workflow_dispatch:
@@ -18,6 +33,11 @@ on:
         description: "Build against Nanuq's main branch instead of the pinned commit"
         type: boolean
         default: false
+
+# A new push to a pull request cancels the run of the previous one; main runs one at a time.
+concurrency:
+  group: book-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   build:
@@ -36,8 +56,20 @@ jobs:
         with:
           nim-version: "2.2.4"
           repo-token: ${{ secrets.GITHUB_TOKEN }}
-      - run: sudo apt-get update && sudo apt-get install -y libpcre3
+      # the runner's package index usually has libpcre3 already; refresh it only if not
+      - run: sudo apt-get install -y --no-install-recommends libpcre3 || (sudo apt-get update && sudo apt-get install -y --no-install-recommends libpcre3)
+      # Nim packages: restored from the cache when nanuqbook.nimble is unchanged
+      - uses: actions/cache@v4
+        with:
+          path: ~/.nimble
+          key: nimble-2.2.4-${{ hashFiles('nanuqbook.nimble') }}
       - run: nimble install -y --depsOnly
+      # Nanuq's prebuilt lib (~/.cache/nanuq/<version>): its version and checksums are in
+      # the submodule, so the key follows the Nanuq commit in use (also for the main build)
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/nanuq
+          key: nanuq-lib-${{ hashFiles('nanuq/src/nanuq/lib-sums.txt', 'nanuq/src/rust/Cargo.toml') }}
       # The Python side of the tabs runs the original Polars code (pyproject.toml, uv.lock)
       - uses: astral-sh/setup-uv@v6
       - run: uv sync --locked

@@ -146,7 +146,7 @@ proc checkSameFrame*(nimHtml, pythonShown, py: string) =
 const nimLabel = "👑 Nim"
 const pythonLabel = "🐍 Python"
 
-proc tabsHtml(nimSide, pySide: string): string =
+proc tabsHtml*(nimSide, pySide: string): string =
   "<div class=\"nq-tabs\"><div class=\"nq-tablist\" role=\"tablist\">" &
     "<button class=\"nq-tab\" role=\"tab\" data-lang=\"nim\" aria-selected=\"true\">" & nimLabel & "</button>" &
     "<button class=\"nq-tab\" role=\"tab\" data-lang=\"python\" aria-selected=\"false\">" & pythonLabel & "</button></div>" &

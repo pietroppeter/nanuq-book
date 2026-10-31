@@ -14,6 +14,7 @@ var book = initBookWithToc:
     entry("CSV", "csv")
   section("Benchmarks", "benchmarks/index.md"):
     entry("One Billion Row Challenge", "one_billion_rows")
+    entry("PDS-H queries", "pds_h")
   entry("Sources and licences", "licences.md", numbered = false)
 
 nimibookCli(book)

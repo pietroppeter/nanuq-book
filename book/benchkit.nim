@@ -7,7 +7,7 @@
 ##   benchmark at full size, times the Nim and the Python queries, writes a timestamped
 ##   JSON file with the timings and the machine's specs to `results/<bench>/`, and
 ##   commits it.
-import std/[json, os, osproc, strutils, times, monotimes, algorithm, sequtils, math]
+import std/[json, os, osproc, strutils, times, monotimes, algorithm, sequtils, math, xmltree]
 import nanuq
 import nanuqbook
 
@@ -113,3 +113,23 @@ proc machine*(r: JsonNode): string =
   if result.len == 0: result = s["arch"].getStr
   result.add ", " & $s["cores"].getInt & " cores, " & $s["memoryGB"].getFloat & " GB, " &
     s["os"].getStr
+
+proc queryTabs*(nimSrc, pySrc: string, nimFrame: DataFrame, pyCall: string): string =
+  ## A query's Nim and Python source in tabs, each with the table it gives (the Python
+  ## one from running `pyCall`); fails the build if the two tables differ.
+  let nimSide = "<pre><code class=\"nim-file nohighlight nim hljs\">" &
+    highlightNim(nimSrc.strip) & "</code></pre>" & nimFrame.toHtml
+  let (_, pyShown) = runPython(pyCall)
+  checkSameFrame(nimSide, pyShown, pyCall)
+  tabsHtml(nimSide, "<pre><code class=\"language-python py-file hljs\">" &
+    xmltree.escape(pySrc.strip) & "</code></pre>" & pyShown)
+
+proc sourcePart*(source, start: string, stops: openArray[string]): string =
+  ## The part of `source` from the line starting with `start` to the next `stops`.
+  let i = source.find(start)
+  doAssert i >= 0, "not found: " & start
+  var j = source.len
+  for s in stops:
+    let k = source.find(s, i + start.len)
+    if k >= 0 and k < j: j = k
+  source[i ..< j].strip

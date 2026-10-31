@@ -90,12 +90,35 @@ proc runPython*(code: string): tuple[printed, shown: string] =
   let r = pyRunner.callObject(code, pyNamespace)
   (r[0].to(string), r[1].to(string))
 
-proc pythonHtml(code: string): string =
+proc pythonHtml(code: string): tuple[html, shown: string] =
   let (printed, shown) = runPython(code)
-  result = "<pre><code class=\"language-python hljs\">" & xmltree.escape(code) & "</code></pre>"
+  result.html = "<pre><code class=\"language-python hljs\">" & xmltree.escape(code) & "</code></pre>"
   if printed.len > 0:
-    result.add "<pre class=\"nb-output\">" & xmltree.escape(printed.strip(leading = false)) & "</pre>"
-  result.add shown
+    result.html.add "<pre class=\"nb-output\">" & xmltree.escape(printed.strip(leading = false)) & "</pre>"
+  result.html.add shown
+  result.shown = shown
+
+proc lastFrame(html: string): string =
+  ## The last DataFrame table in `html` (shape line and table), as both Nanuq's
+  ## toHtml and Python Polars' _repr_html_ write it; "" if there is none.
+  let stop = html.rfind("</table>")
+  if stop < 0: return ""
+  let start = html.rfind("<small>shape:", last = stop)
+  if start < 0: return ""
+  html[start ..< stop + "</table>".len]
+
+proc checkSameFrame*(nimHtml, pythonShown, py: string) =
+  ## Fails the build when the Python cell shows a DataFrame that differs from the
+  ## last one the Nim side shows.
+  let pyFrame = lastFrame(pythonShown)
+  if pyFrame.len == 0: return
+  let nimFrame = lastFrame(nimHtml)
+  if nimFrame.len == 0:
+    raise newException(ValueError, "the Python cell shows a DataFrame and the Nim tab " &
+      "shows none:\n" & py)
+  if nimFrame != pyFrame:
+    raise newException(ValueError, "Nim and Python show different DataFrames for:\n" &
+      py & "\n--- nim:\n" & nimFrame & "\n--- python:\n" & pyFrame)
 
 
 const nimLabel = "👑 Nim"
@@ -111,7 +134,8 @@ template tabs*(py: string, body: untyped) =
   for i in first ..< nb.blocks.len:
     nimSide.add nb.render(nb.blocks[i])
   nb.blocks.setLen(first)
-  let pySide = pythonHtml(py.strip)
+  let (pySide, pyShown) = pythonHtml(py.strip)
+  checkSameFrame(nimSide, pyShown, py.strip)
   nbRawHtml: "<div class=\"nq-tabs\"><div class=\"nq-tablist\" role=\"tablist\">" &
     "<button class=\"nq-tab\" role=\"tab\" data-lang=\"nim\" aria-selected=\"true\">" & nimLabel & "</button>" &
     "<button class=\"nq-tab\" role=\"tab\" data-lang=\"python\" aria-selected=\"false\">" & pythonLabel & "</button></div>" &
@@ -120,7 +144,7 @@ template tabs*(py: string, body: untyped) =
 
 template python*(code: string) =
   ## Python that runs without a Nim counterpart (shown in its own block).
-  nbRawHtml: "<div class=\"nq-python-only\">" & pythonHtml(code.strip) & "</div>"
+  nbRawHtml: "<div class=\"nq-python-only\">" & pythonHtml(code.strip).html & "</div>"
 
 # --- Theme ------------------------------------------------------------------
 # nimibook's layout (sidebar, menu bar, search) restyled with the palette and fonts

@@ -52,7 +52,7 @@ df
       series("day_low", [228.6, 136.3, 417.52, 164.78, 188.44]),
       series("year_high", [237.23, 140.76, 468.35, 193.31, 201.2]),
       series("year_low", [164.08, 39.23, 324.39, 121.46, 118.35]))
-  nbShow df
+    nbShow df
 
 nbText: """
 ## Function `col`
@@ -92,7 +92,7 @@ result
 
     let result = df.withColumns(
       (col("price", "day_high", "day_low", "year_high", "year_low") / eurUsdRate).round(2))
-  nbShow result
+    nbShow result
 
 nbText: """
 When you list the column names you want the expression to expand to, you can predict what
@@ -145,7 +145,7 @@ result
 """:
   nbCode:
     let byType = df.withColumns((col(float) / eurUsdRate).round(2))
-  nbShow byType
+    nbShow byType
 
 nbText: """
 When we use a data type with expression expansion we cannot know, beforehand, how many
@@ -191,7 +191,7 @@ result
 """:
   nbCode:
     let highsAndLows = df.select(col("ticker", "^.*_high$", "^.*_low$"))
-  nbShow highsAndLows
+    nbShow highsAndLows
 
 nbText: """
 ### Arguments cannot be of mixed types
@@ -236,7 +236,7 @@ result
 """:
   nbCode:
     let noDay = df.select(all().exclude("^day_.*$"))
-  nbShow noDay
+    nbShow noDay
 
 nbText: "Naturally, the function `exclude` can also be used after the function `col`:"
 
@@ -246,7 +246,7 @@ result
 """:
   nbCode:
     let floatsNoDay = df.select(col(float).exclude("^day_.*$"))
-  nbShow floatsNoDay
+    nbShow floatsNoDay
 
 nbText: """
 ## Column renaming
@@ -308,7 +308,7 @@ result
     let prices = df.select(
       (col("price") / gbpUsdRate).alias("price (GBP)"),
       (col("price") / eurUsdRate).alias("price (EUR)"))
-  nbShow prices
+    nbShow prices
 
 nbText: """
 ### Prefixing and suffixing column names
@@ -331,7 +331,7 @@ result
     let renamed = df.select(
       (col("^year_.*$") / eurUsdRate).name.prefix("in_eur_"),
       (col("day_high", "day_low") / gbpUsdRate).name.suffix("_gbp"))
-  nbShow renamed
+    nbShow renamed
 
 nbText: """
 ### Dynamic name replacement
@@ -371,7 +371,7 @@ result
     for tp in ["day", "year"]:
       amplitudes = amplitudes.withColumns(
         (col(tp & "_high") - col(tp & "_low")).alias(tp & "_amplitude"))
-  nbShow amplitudes
+    nbShow amplitudes
 
 nbText: """
 Do not do this. Instead, generate all of the expressions you want to compute
@@ -395,7 +395,7 @@ result
         result.add (col(tp & "_high") - col(tp & "_low")).alias(tp & "_amplitude")
 
     let withAmplitudes = df.withColumns(amplitudeExpressions(["day", "year"]))
-  nbShow withAmplitudes
+    nbShow withAmplitudes
 
 nbText: """
 This produces the same final result and by specifying all of the expressions in one go we

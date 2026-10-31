@@ -52,7 +52,7 @@ props_groups
     import nanuq
 
     let propsGroups = readCsv("data/polars/monopoly_props_groups.csv").head(5)
-  nbShow propsGroups
+    nbShow propsGroups
 
 nbText: "Next, we load a dataframe that contains property names and their price in the game:"
 
@@ -62,7 +62,7 @@ props_prices
 """:
   nbCode:
     let propsPrices = readCsv("data/polars/monopoly_props_prices.csv").head(5)
-  nbShow propsPrices
+    nbShow propsPrices
 
 nbText: """
 Now, we join both dataframes to create a dataframe that contains property names, colour
@@ -75,7 +75,7 @@ result
 """:
   nbCode:
     let joined = propsGroups.join(propsPrices, on = ["property_name"])
-  nbShow joined
+    nbShow joined
 
 nbText: """
 In Nanuq `on` always takes a list of keys, even when there is only one.
@@ -97,7 +97,7 @@ props_prices2
 """:
   nbCode:
     let propsPrices2 = propsPrices.select(col("property_name").alias("name"), col("cost"))
-  nbShow propsPrices2
+    nbShow propsPrices2
 
 nbText: """
 We can still perform the same join as before by naming the key on the left and on the
@@ -111,7 +111,7 @@ result
 """:
   nbCode:
     let byName = propsGroups.join(propsPrices2, leftOn = ["property_name"], rightOn = ["name"])
-  nbShow byName
+    nbShow byName
 
 nbText: """
 The original page computes the key on the right with `pl.col("name").str.to_lowercase()`,
@@ -137,7 +137,7 @@ result
 """:
   nbCode:
     let innerJoin = propsGroups.join(propsPrices, on = ["property_name"], how = Inner)
-  nbShow innerJoin
+    nbShow innerJoin
 
 nbText: """
 The result does not include the row from `props_groups` that contains “The Shire” and the
@@ -155,7 +155,7 @@ result
 """:
   nbCode:
     let leftJoin = propsGroups.join(propsPrices, on = ["property_name"], how = Left)
-  nbShow leftJoin
+    nbShow leftJoin
 
 nbText: """
 If there are any rows from the left dataframe that have no matching rows on the right
@@ -173,7 +173,7 @@ result
 """:
   nbCode:
     let rightJoin = propsGroups.join(propsPrices, on = ["property_name"], how = Right)
-  nbShow rightJoin
+    nbShow rightJoin
 
 nbText: """
 `df1.join(df2, how = Right, ...)` is the same as `df2.join(df1, how = Left, ...)`, up to
@@ -210,7 +210,7 @@ result
 """:
   nbCode:
     let fullJoin = propsGroups.join(propsPrices, on = ["property_name"], how = Full)
-  nbShow fullJoin
+    nbShow fullJoin
 
 nbText: """
 In this case, we see that we get two columns `property_name` and `property_name_right` to
@@ -234,7 +234,7 @@ result
 
     let fullCoalesced = propsGroups.join(propsPrices, on = ["property_name"], how = Full,
                                          coalesce = some(true))
-  nbShow fullCoalesced
+    nbShow fullCoalesced
 
 nbText: """
 `coalesce` is an `Option[bool]` in Nanuq: when it is not set, it is determined
@@ -253,7 +253,7 @@ result
 """:
   nbCode:
     let semiJoin = propsGroups.join(propsPrices, on = ["property_name"], how = Semi)
-  nbShow semiJoin
+    nbShow semiJoin
 
 nbText: """
 A semi join acts as a sort of row filter based on a second dataframe.
@@ -270,7 +270,7 @@ result
 """:
   nbCode:
     let antiJoin = propsGroups.join(propsPrices, on = ["property_name"], how = Anti)
-  nbShow antiJoin
+    nbShow antiJoin
 
 nbText: """
 ## Cartesian product
@@ -292,7 +292,7 @@ result
     let players = newDataFrame(series("name", ["Alice", "Bob"]), series("cash", [78, 135]))
     let tokens = newDataFrame(series("monopoly_token", ["hat", "shoe", "boat"]))
     let crossJoin = players.select(col("name")).join(tokens, how = Cross)
-  nbShow crossJoin
+    nbShow crossJoin
 
 nbText: """
 ## Not ported yet

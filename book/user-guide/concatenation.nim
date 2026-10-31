@@ -42,7 +42,7 @@ df_vertical_concat
     let dfV1 = newDataFrame(series("a", [1]), series("b", [3]))
     let dfV2 = newDataFrame(series("a", [2]), series("b", [4]))
     let dfVerticalConcat = concat([dfV1, dfV2], how = Vertical)
-  nbShow dfVerticalConcat
+    nbShow dfVerticalConcat
 
 nbText: """
 Vertical concatenation fails when the dataframes do not have the same column names.
@@ -63,7 +63,7 @@ df_horizontal_concat
     let dfH1 = newDataFrame(series("l1", [1, 2]), series("l2", [3, 4]))
     let dfH2 = newDataFrame(series("r1", [5, 6]), series("r2", [7, 8]), series("r3", [9, 10]))
     let dfHorizontalConcat = concat([dfH1, dfH2], how = Horizontal)
-  nbShow dfHorizontalConcat
+    nbShow dfHorizontalConcat
 
 nbText: """
 Horizontal concatenation fails when dataframes have overlapping columns. Python Polars
@@ -86,7 +86,7 @@ df_diagonal_concat
     let dfD1 = newDataFrame(series("a", [1]), series("b", [3]))
     let dfD2 = newDataFrame(series("a", [2]), series("d", [4]))
     let dfDiagonalConcat = concat([dfD1, dfD2], how = Diagonal)
-  nbShow dfDiagonalConcat
+    nbShow dfDiagonalConcat
 
 nbText: """
 Diagonal concatenation generates nulls when the column names do not overlap.

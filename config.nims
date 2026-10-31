@@ -7,3 +7,4 @@ switch("path", thisDir() / "book")
 # is not released. A library in nanuq/src/rust/target/release still wins, for
 # local work on an unreleased Nanuq.
 switch("define", "nanuqLib=prebuilt")
+switch("path", thisDir() / "bench")

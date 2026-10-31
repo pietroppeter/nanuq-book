@@ -8,3 +8,5 @@ book.json
 nimcache/
 .venv/
 __pycache__/
+# full-size benchmark data (scripts/bench)
+bench-data/

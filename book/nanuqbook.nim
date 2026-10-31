@@ -146,6 +146,24 @@ proc checkSameFrame*(nimHtml, pythonShown, py: string) =
 const nimLabel = "👑 Nim"
 const pythonLabel = "🐍 Python"
 
+proc tabsHtml(nimSide, pySide: string): string =
+  "<div class=\"nq-tabs\"><div class=\"nq-tablist\" role=\"tablist\">" &
+    "<button class=\"nq-tab\" role=\"tab\" data-lang=\"nim\" aria-selected=\"true\">" & nimLabel & "</button>" &
+    "<button class=\"nq-tab\" role=\"tab\" data-lang=\"python\" aria-selected=\"false\">" & pythonLabel & "</button></div>" &
+    "<div class=\"nq-panel\" data-lang=\"nim\">" & nimSide & "</div>" &
+    "<div class=\"nq-panel\" data-lang=\"python\" hidden>" & pySide & "</div></div>"
+
+proc fileTabs*(nimPath, pyPath: string): string =
+  ## Two source files in tabs, shown and not run: a Nim module and its Python twin.
+  proc link(path: string): string =
+    let rel = path.relativePath(getCurrentDir() / "..").replace('\\', '/')
+    "<p class=\"nq-file\"><a href=\"https://github.com/pietroppeter/nanuq-book/blob/main/" &
+      rel & "\">" & rel & "</a></p>"
+  tabsHtml(link(nimPath) & "<pre><code class=\"nim-file nohighlight nim hljs\">" &
+             highlightNim(readFile(nimPath).strip) & "</code></pre>",
+           link(pyPath) & "<pre><code class=\"language-python py-file hljs\">" &
+             xmltree.escape(readFile(pyPath).strip) & "</code></pre>")
+
 template tabs*(py: string, body: untyped) =
   ## A Nim port (the blocks in `body`) and the original `py` code, in tabs, Nim
   ## first. Both run. A Python cell that ends with an expression shows its value, as
@@ -158,11 +176,7 @@ template tabs*(py: string, body: untyped) =
   nb.blocks.setLen(first)
   let (pySide, pyShown) = pythonHtml(py.strip)
   checkSameFrame(nimSide, pyShown, py.strip)
-  nbRawHtml: "<div class=\"nq-tabs\"><div class=\"nq-tablist\" role=\"tablist\">" &
-    "<button class=\"nq-tab\" role=\"tab\" data-lang=\"nim\" aria-selected=\"true\">" & nimLabel & "</button>" &
-    "<button class=\"nq-tab\" role=\"tab\" data-lang=\"python\" aria-selected=\"false\">" & pythonLabel & "</button></div>" &
-    "<div class=\"nq-panel\" data-lang=\"nim\">" & nimSide & "</div>" &
-    "<div class=\"nq-panel\" data-lang=\"python\" hidden>" & pySide & "</div></div>"
+  nbRawHtml: tabsHtml(nimSide, pySide)
 
 template python*(code: string) =
   ## Python that runs without a Nim counterpart (shown in its own block).

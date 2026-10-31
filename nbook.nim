@@ -12,6 +12,8 @@ var book = initBookWithToc:
     entry("Joins", "joins")
     entry("Concatenation", "concatenation")
     entry("CSV", "csv")
+  section("Benchmarks", "benchmarks/index.md"):
+    entry("One Billion Row Challenge", "one_billion_rows")
   entry("Sources and licences", "licences.md", numbered = false)
 
 nimibookCli(book)

@@ -66,6 +66,9 @@ code, pre, pre code, .hljs { font-family: var(--mono) !important; font-variant-l
 .content pre:has(> code.nim)::before { content: "nim · ran"; }
 .content pre:has(> code.language-python)::before { content: "python · ran"; }
 .content pre:has(> code.nim-source)::before { content: "nim · source of this page"; }
+.content pre:has(> code.nim-file)::before { content: "nim · source file"; }
+.content pre:has(> code.py-file)::before { content: "python · source file"; }
+.content p.nq-file { margin: 0 0 .4rem; font: .85em var(--mono); }
 .content pre:has(> code):has(+ pre.nb-output) > code,
 .content pre:has(> code):has(+ div > table.dataframe) > code { border-radius: 6px 6px 0 0; }
 .content pre.nb-output:has(+ div > table.dataframe) { border-radius: 0; }

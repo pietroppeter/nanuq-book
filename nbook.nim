@@ -12,6 +12,7 @@ var book = initBookWithToc:
     entry("Missing data", "missing_data")
     entry("Strings", "strings")
     entry("Categorical data and enums", "categoricals")
+    entry("Window functions", "window_functions")
     entry("Time series: parsing", "time_series_parsing")
     entry("Time series: filtering", "time_series_filtering")
     entry("Time zones", "time_zones")

@@ -59,8 +59,7 @@ To determine how many values are missing from a column you can use the function
 """
 
 tabs """
-null_count_df = df.null_count()
-null_count_df
+df.null_count()
 """:
   nbCode:
     let nullCountDf = df.select(col("value").isNull.sum)
@@ -75,10 +74,9 @@ not:
 """
 
 tabs """
-is_null_series = df.select(
+df.select(
     pl.col("value").is_null(),
 )
-is_null_series
 """:
   nbCode:
     let isNullSeries = df.select(col("value").isNull)
@@ -122,10 +120,9 @@ replace all of the occurrences of the value `null`:
 """
 
 tabs """
-fill_literal_df = df.with_columns(
+df.with_columns(
     pl.col("col2").fill_null(3),
 )
-fill_literal_df
 """:
   nbCode:
     let fillLiteralDf = df2.withColumns(col("col2").fillNull(3))
@@ -144,10 +141,9 @@ with values taken from the double of the first column:
 """
 
 tabs """
-fill_expression_df = df.with_columns(
+df.with_columns(
     pl.col("col2").fill_null((2 * pl.col("col1")).cast(pl.Int64)),
 )
-fill_expression_df
 """:
   nbCode:
     let fillExpressionDf = df2.withColumns(
@@ -164,11 +160,10 @@ strategy is a value of the enum `FillNullStrategy`, where Python uses a string:
 """
 
 tabs """
-fill_forward_df = df.with_columns(
+df.with_columns(
     pl.col("col2").fill_null(strategy="forward").alias("forward"),
     pl.col("col2").fill_null(strategy="backward").alias("backward"),
 )
-fill_forward_df
 """:
   nbCode:
     let fillForwardDf = df2.withColumns(
@@ -215,8 +210,7 @@ df = pl.DataFrame(
         "divisor": [1, 0, -1],
     }
 )
-result = df.select(pl.col("dividend") / pl.col("divisor"))
-result
+df.select(pl.col("dividend") / pl.col("divisor"))
 """:
   nbCode:
     let df3 = newDataFrame(series("dividend", [1, 0, -1]), series("divisor", [1, 0, -1]))
@@ -243,13 +237,12 @@ with the value `null`. Nanuq has no `fill_nan` yet, so this one runs in Python o
 """
 
 python """
-mean_nan_df = nan_df.with_columns(
+nan_df.with_columns(
     pl.col("value").fill_nan(None).alias("replaced"),
 ).select(
     pl.all().mean().name.suffix("_mean"),
     pl.all().sum().name.suffix("_sum"),
 )
-mean_nan_df
 """
 
 bookSave()

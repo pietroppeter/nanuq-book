@@ -56,7 +56,7 @@ result takes the sign of the divisor, as `%` does in Python).
 """
 
 tabs """
-result = df.select(
+df.select(
     (pl.col("nrs") + 5).alias("nrs + 5"),
     (pl.col("nrs") - 5).alias("nrs - 5"),
     (pl.col("nrs") * pl.col("random")).alias("nrs * random"),
@@ -64,7 +64,6 @@ result = df.select(
     (pl.col("nrs") ** 2).alias("nrs ** 2"),
     (pl.col("nrs") % 3).alias("nrs % 3"),
 )
-result
 """:
   nbCode:
     let arithmetic = df.select(
@@ -86,7 +85,7 @@ Like with arithmetic operations, Polars supports comparisons via the overloaded 
 """
 
 tabs """
-result = df.select(
+df.select(
     (pl.col("nrs") > 1).alias("nrs > 1"),  # .gt
     (pl.col("nrs") >= 3).alias("nrs >= 3"),  # .ge
     (pl.col("random") < 0.2).alias("random < .2"),  # .lt
@@ -94,7 +93,6 @@ result = df.select(
     (pl.col("nrs") != 1).alias("nrs != 1"),  # .ne
     (pl.col("nrs") == 1).alias("nrs == 1"),  # .eq
 )
-result
 """:
   nbCode:
     let comparisons = df.select(
@@ -115,7 +113,7 @@ them, so Nanuq uses the keywords:
 """
 
 tabs """
-result = df.select(
+df.select(
     ((~pl.col("nrs").is_null()) & (pl.col("groups") == "A")).alias(
         "number not null and group A"
     ),
@@ -123,7 +121,6 @@ result = df.select(
         "random < 0.5 or group B"
     ),
 )
-result
 """:
   nbCode:
     let booleans = df.select(
@@ -141,10 +138,9 @@ series:
 """
 
 tabs """
-result = df.select(
+df.select(
     pl.col("names").n_unique().alias("n_unique"),
 )
-result
 """:
   nbCode:
     let uniqueNames = df.select(col("names").nUnique.alias("n_unique"))
@@ -173,14 +169,13 @@ the column “nrs”:
 """
 
 tabs """
-result = df.select(
+df.select(
     pl.col("nrs"),
     pl.when(pl.col("nrs") % 2 == 1)  # Is the number odd?
     .then(3 * pl.col("nrs") + 1)  # If so, multiply by 3 and add 1.
     .otherwise(pl.col("nrs") // 2)  # If not, divide by 2.
     .alias("Collatz"),
 )
-result
 """:
   nbCode:
     let collatz = df.select(

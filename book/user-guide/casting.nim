@@ -55,11 +55,10 @@ function `cast`:
 """
 
 tabs """
-result = df.select(
+df.select(
     pl.col("integers").cast(pl.Float32).alias("integers_as_floats"),
     pl.col("floats").cast(pl.Int32).alias("floats_as_integers"),
 )
-result
 """:
   nbCode:
     let numbers = df.select(
@@ -79,11 +78,10 @@ with `estimated_size`):
 """
 
 tabs """
-result = df.with_columns(
+df.with_columns(
     pl.col("integers").cast(pl.Int16),
     pl.col("floats").cast(pl.Float32),
 )
-result
 """:
   nbCode:
     let downcast = df.withColumns(
@@ -121,8 +119,7 @@ converted to `null`:
 """
 
 tabs """
-result = df.select(pl.col("big_integers").cast(pl.Int8, strict=False))
-result
+df.select(pl.col("big_integers").cast(pl.Int8, strict=False))
 """:
   nbCode:
     let overflow = df.select(col("big_integers").cast(Int8, strict = false))
@@ -144,12 +141,11 @@ df = pl.DataFrame(
     }
 )
 
-result = df.select(
+df.select(
     pl.col("integers_as_strings").cast(pl.Int32),
     pl.col("floats_as_strings").cast(pl.Float64),
     pl.col("floats").cast(pl.String),
 )
-result
 """:
   nbCode:
     let strings = newDataFrame(
@@ -207,12 +203,11 @@ df = pl.DataFrame(
     }
 )
 
-result = df.select(
+df.select(
     pl.col("integers").cast(pl.Boolean),
     pl.col("floats").cast(pl.Boolean),
     pl.col("bools").cast(pl.Int8),
 )
-result
 """:
   nbCode:
     let mixed = newDataFrame(

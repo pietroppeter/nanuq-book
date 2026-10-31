@@ -33,8 +33,7 @@ import polars as pl
 
 df_v1 = pl.DataFrame({"a": [1], "b": [3]})
 df_v2 = pl.DataFrame({"a": [2], "b": [4]})
-df_vertical_concat = pl.concat([df_v1, df_v2], how="vertical")
-df_vertical_concat
+pl.concat([df_v1, df_v2], how="vertical")
 """:
   nbCode:
     import nanuq
@@ -56,8 +55,7 @@ a single wider DataFrame.
 tabs """
 df_h1 = pl.DataFrame({"l1": [1, 2], "l2": [3, 4]})
 df_h2 = pl.DataFrame({"r1": [5, 6], "r2": [7, 8], "r3": [9, 10]})
-df_horizontal_concat = pl.concat([df_h1, df_h2], how="horizontal")
-df_horizontal_concat
+pl.concat([df_h1, df_h2], how="horizontal")
 """:
   nbCode:
     let dfH1 = newDataFrame(series("l1", [1, 2]), series("l2", [3, 4]))
@@ -79,8 +77,7 @@ DataFrames into a single longer and/or wider DataFrame.
 tabs """
 df_d1 = pl.DataFrame({"a": [1], "b": [3]})
 df_d2 = pl.DataFrame({"a": [2], "d": [4]})
-df_diagonal_concat = pl.concat([df_d1, df_d2], how="diagonal")
-df_diagonal_concat
+pl.concat([df_d1, df_d2], how="diagonal")
 """:
   nbCode:
     let dfD1 = newDataFrame(series("a", [1]), series("b", [3]))

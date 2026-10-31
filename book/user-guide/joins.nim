@@ -70,8 +70,7 @@ groups, and prices:
 """
 
 tabs """
-result = props_groups.join(props_prices, on="property_name")
-result
+props_groups.join(props_prices, on="property_name")
 """:
   nbCode:
     let joined = propsGroups.join(propsPrices, on = ["property_name"])
@@ -106,8 +105,7 @@ key of each row.
 """
 
 tabs """
-result = props_groups.join(props_prices2, left_on="property_name", right_on="name")
-result
+props_groups.join(props_prices2, left_on="property_name", right_on="name")
 """:
   nbCode:
     let byName = propsGroups.join(propsPrices2, leftOn = ["property_name"], rightOn = ["name"])
@@ -132,8 +130,7 @@ an example of that. We repeat the example here and explicitly specify the join s
 """
 
 tabs """
-result = props_groups.join(props_prices, on="property_name", how="inner")
-result
+props_groups.join(props_prices, on="property_name", how="inner")
 """:
   nbCode:
     let innerJoin = propsGroups.join(propsPrices, on = ["property_name"], how = Inner)
@@ -150,8 +147,7 @@ and the rows of the right dataframe that matched any rows from the left datafram
 """
 
 tabs """
-result = props_groups.join(props_prices, on="property_name", how="left")
-result
+props_groups.join(props_prices, on="property_name", how="left")
 """:
   nbCode:
     let leftJoin = propsGroups.join(propsPrices, on = ["property_name"], how = Left)
@@ -205,8 +201,7 @@ don't have matching rows in the other dataframe:
 """
 
 tabs """
-result = props_groups.join(props_prices, on="property_name", how="full")
-result
+props_groups.join(props_prices, on="property_name", how="full")
 """:
   nbCode:
     let fullJoin = propsGroups.join(propsPrices, on = ["property_name"], how = Full)
@@ -221,13 +216,12 @@ the source of each row data. If we wanted to force `join` to coalesce the two co
 """
 
 tabs """
-result = props_groups.join(
+props_groups.join(
     props_prices,
     on="property_name",
     how="full",
     coalesce=True,
 )
-result
 """:
   nbCode:
     import std/options
@@ -248,8 +242,7 @@ dataframe, but we do not actually join the matching rows:
 """
 
 tabs """
-result = props_groups.join(props_prices, on="property_name", how="semi")
-result
+props_groups.join(props_prices, on="property_name", how="semi")
 """:
   nbCode:
     let semiJoin = propsGroups.join(propsPrices, on = ["property_name"], how = Semi)
@@ -265,8 +258,7 @@ match in the right dataframe:
 """
 
 tabs """
-result = props_groups.join(props_prices, on="property_name", how="anti")
-result
+props_groups.join(props_prices, on="property_name", how="anti")
 """:
   nbCode:
     let antiJoin = propsGroups.join(propsPrices, on = ["property_name"], how = Anti)
@@ -285,8 +277,7 @@ strategy `Cross` to `join`, without any keys:
 tabs """
 players = pl.DataFrame({"name": ["Alice", "Bob"], "cash": [78, 135]})
 tokens = pl.DataFrame({"monopoly_token": ["hat", "shoe", "boat"]})
-result = players.select(pl.col("name")).join(tokens, how="cross")
-result
+players.select(pl.col("name")).join(tokens, how="cross")
 """:
   nbCode:
     let players = newDataFrame(series("name", ["Alice", "Bob"]), series("cash", [78, 135]))

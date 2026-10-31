@@ -186,8 +186,7 @@ Regular expressions can be mixed with regular column names:
 """
 
 tabs """
-result = df.select(pl.col("ticker", "^.*_high$", "^.*_low$"))
-result
+df.select(pl.col("ticker", "^.*_high$", "^.*_low$"))
 """:
   nbCode:
     let highsAndLows = df.select(col("ticker", "^.*_high$", "^.*_low$"))
@@ -231,8 +230,7 @@ that, you use the function `exclude`, which accepts exactly the same types of ar
 """
 
 tabs """
-result = df.select(pl.all().exclude("^day_.*$"))
-result
+df.select(pl.all().exclude("^day_.*$"))
 """:
   nbCode:
     let noDay = df.select(all().exclude("^day_.*$"))
@@ -241,8 +239,7 @@ result
 nbText: "Naturally, the function `exclude` can also be used after the function `col`:"
 
 tabs """
-result = df.select(pl.col(pl.Float64).exclude("^day_.*$"))
-result
+df.select(pl.col(pl.Float64).exclude("^day_.*$"))
 """:
   nbCode:
     let floatsNoDay = df.select(col(float).exclude("^day_.*$"))
@@ -298,11 +295,10 @@ rename a single column:
 """
 
 tabs """
-result = df.select(
+df.select(
     (pl.col("price") / gbp_usd_rate).alias("price (GBP)"),
     (pl.col("price") / eur_usd_rate).alias("price (EUR)"),
 )
-result
 """:
   nbCode:
     let prices = df.select(
@@ -321,11 +317,10 @@ the functions `prefix` and `suffix` from the namespace `name`:
 """
 
 tabs """
-result = df.select(
+df.select(
     (pl.col("^year_.*$") / eur_usd_rate).name.prefix("in_eur_"),
     (pl.col("day_high", "day_low") / gbp_usd_rate).name.suffix("_gbp"),
 )
-result
 """:
   nbCode:
     let renamed = df.select(
@@ -342,8 +337,7 @@ accepts a callable that accepts the old column names and produces the new ones:
 
 python """
 # There is also `name.to_uppercase`, so this usage of `.map` is moot.
-result = df.select(pl.all().name.map(str.upper))
-result
+df.select(pl.all().name.map(str.upper))
 """
 
 nbText: """
@@ -359,12 +353,11 @@ At first, you may think about using a `for` loop:
 """
 
 tabs """
-result = df
 for tp in ["day", "year"]:
-    result = result.with_columns(
+    df = df.with_columns(
         (pl.col(f"{tp}_high") - pl.col(f"{tp}_low")).alias(f"{tp}_amplitude")
     )
-result
+df
 """:
   nbCode:
     var amplitudes = df
@@ -386,8 +379,7 @@ def amplitude_expressions(time_periods):
         yield (pl.col(f"{tp}_high") - pl.col(f"{tp}_low")).alias(f"{tp}_amplitude")
 
 
-result = df.with_columns(amplitude_expressions(["day", "year"]))
-result
+df.with_columns(amplitude_expressions(["day", "year"]))
 """:
   nbCode:
     proc amplitudeExpressions(timePeriods: openArray[string]): seq[Expr] =
@@ -413,8 +405,7 @@ that can be combined with set operations (`|`, `&`, `-`, `~`):
 python """
 import polars.selectors as cs
 
-result = df.select(cs.string() | cs.ends_with("_high"))
-result
+df.select(cs.string() | cs.ends_with("_high"))
 """
 
 nbText: """

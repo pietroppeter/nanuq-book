@@ -1,9 +1,10 @@
-"""PDS-H (derived from TPC-H) queries in Python Polars: the ones Nanuq 0.2 can run.
+"""PDS-H (derived from TPC-H) queries in Python Polars.
 
-From the Polars queries of polars-benchmark (Apache-2.0), with dates as ISO strings,
-`pl.lit("1995-03-15")`, instead of date values, as on the Nim side (a plain string in
-`is_between` would be a column name).
+The Polars queries of polars-benchmark (Apache-2.0), as they are there: only the
+dataset loading is left out (the tables are passed in) and q11 takes the scale factor
+as an argument.
 """
+from datetime import date
 from pathlib import Path
 
 import polars as pl
@@ -12,12 +13,15 @@ TABLES = ["customer", "lineitem", "nation", "orders", "part", "partsupp", "regio
 
 
 def scan_tables(folder):
-    # The eight tables, as CSV files with a header (`tpchgen-cli csv`).
-    return {name: pl.scan_csv(Path(folder) / f"{name}.csv") for name in TABLES}
+    # The eight tables, as CSV files with a header (`tpchgen-cli csv`), dates parsed.
+    return {
+        name: pl.scan_csv(Path(folder) / f"{name}.csv", try_parse_dates=True)
+        for name in TABLES
+    }
 
 
 def q1(lineitem, **kwargs):
-    var1 = pl.lit("1998-09-02")
+    var1 = date(1998, 9, 2)
 
     return (
         lineitem.filter(pl.col("l_shipdate") <= var1)
@@ -44,9 +48,46 @@ def q1(lineitem, **kwargs):
     )
 
 
+def q2(nation, partsupp, supplier, region, part, **kwargs):
+    var1 = 15
+    var2 = "BRASS"
+    var3 = "EUROPE"
+
+    q1 = (
+        part.join(partsupp, left_on="p_partkey", right_on="ps_partkey")
+        .join(supplier, left_on="ps_suppkey", right_on="s_suppkey")
+        .join(nation, left_on="s_nationkey", right_on="n_nationkey")
+        .join(region, left_on="n_regionkey", right_on="r_regionkey")
+        .filter(pl.col("p_size") == var1)
+        .filter(pl.col("p_type").str.ends_with(var2))
+        .filter(pl.col("r_name") == var3)
+    )
+
+    return (
+        q1.group_by("p_partkey")
+        .agg(pl.min("ps_supplycost"))
+        .join(q1, on=["p_partkey", "ps_supplycost"])
+        .select(
+            "s_acctbal",
+            "s_name",
+            "n_name",
+            "p_partkey",
+            "p_mfgr",
+            "s_address",
+            "s_phone",
+            "s_comment",
+        )
+        .sort(
+            by=["s_acctbal", "n_name", "s_name", "p_partkey"],
+            descending=[True, False, False, False],
+        )
+        .head(100)
+    )
+
+
 def q3(customer, lineitem, orders, **kwargs):
     var1 = "BUILDING"
-    var2 = pl.lit("1995-03-15")
+    var2 = date(1995, 3, 15)
 
     return (
         customer.filter(pl.col("c_mktsegment") == var1)
@@ -71,8 +112,8 @@ def q3(customer, lineitem, orders, **kwargs):
 
 
 def q4(lineitem, orders, **kwargs):
-    var1 = pl.lit("1993-07-01")
-    var2 = pl.lit("1993-10-01")
+    var1 = date(1993, 7, 1)
+    var2 = date(1993, 10, 1)
 
     return (
         # SQL exists translates to semi join in Polars API
@@ -89,10 +130,10 @@ def q4(lineitem, orders, **kwargs):
     )
 
 
-def q5(customer, lineitem, nation, orders, partsupp, supplier, region, part, **kwargs):
+def q5(customer, lineitem, nation, orders, supplier, region, **kwargs):
     var1 = "ASIA"
-    var2 = pl.lit("1994-01-01")
-    var3 = pl.lit("1995-01-01")
+    var2 = date(1994, 1, 1)
+    var3 = date(1995, 1, 1)
 
     return (
         region.join(nation, left_on="r_regionkey", right_on="n_regionkey")
@@ -116,8 +157,8 @@ def q5(customer, lineitem, nation, orders, partsupp, supplier, region, part, **k
 
 
 def q6(lineitem, **kwargs):
-    var1 = pl.lit("1994-01-01")
-    var2 = pl.lit("1995-01-01")
+    var1 = date(1994, 1, 1)
+    var2 = date(1995, 1, 1)
     var3 = 0.05
     var4 = 0.07
     var5 = 24
@@ -133,9 +174,104 @@ def q6(lineitem, **kwargs):
     )
 
 
+def q7(customer, lineitem, nation, orders, supplier, **kwargs):
+    var1 = "FRANCE"
+    var2 = "GERMANY"
+    var3 = date(1995, 1, 1)
+    var4 = date(1996, 12, 31)
+
+    nations = nation.filter(pl.col("n_name").is_in([var1, var2]))
+
+    return (
+        customer.join(nations, left_on="c_nationkey", right_on="n_nationkey")
+        .rename({"n_name": "cust_nation"})
+        .join(orders, left_on="c_custkey", right_on="o_custkey")
+        .join(lineitem, left_on="o_orderkey", right_on="l_orderkey")
+        .join(supplier, left_on="l_suppkey", right_on="s_suppkey")
+        .join(nations, left_on="s_nationkey", right_on="n_nationkey")
+        .rename({"n_name": "supp_nation"})
+        .filter(
+            ((pl.col("cust_nation") == var1) & (pl.col("supp_nation") == var2))
+            | ((pl.col("cust_nation") == var2) & (pl.col("supp_nation") == var1))
+        )
+        .filter(pl.col("l_shipdate").is_between(var3, var4))
+        .with_columns(
+            (pl.col("l_extendedprice") * (1 - pl.col("l_discount"))).alias("volume"),
+            pl.col("l_shipdate").dt.year().alias("l_year"),
+        )
+        .group_by("supp_nation", "cust_nation", "l_year")
+        .agg(pl.sum("volume").alias("revenue"))
+        .sort(by=["supp_nation", "cust_nation", "l_year"])
+    )
+
+
+def q8(customer, lineitem, nation, orders, supplier, region, part, **kwargs):
+    var1 = "BRAZIL"
+    var2 = "AMERICA"
+    var3 = "ECONOMY ANODIZED STEEL"
+    var4 = date(1995, 1, 1)
+    var5 = date(1996, 12, 31)
+
+    n1 = nation.select("n_nationkey", "n_regionkey")
+    n2 = nation.select("n_nationkey", "n_name")
+
+    return (
+        part.join(lineitem, left_on="p_partkey", right_on="l_partkey")
+        .join(supplier, left_on="l_suppkey", right_on="s_suppkey")
+        .join(orders, left_on="l_orderkey", right_on="o_orderkey")
+        .join(customer, left_on="o_custkey", right_on="c_custkey")
+        .join(n1, left_on="c_nationkey", right_on="n_nationkey")
+        .join(region, left_on="n_regionkey", right_on="r_regionkey")
+        .filter(pl.col("r_name") == var2)
+        .join(n2, left_on="s_nationkey", right_on="n_nationkey")
+        .filter(pl.col("o_orderdate").is_between(var4, var5))
+        .filter(pl.col("p_type") == var3)
+        .select(
+            pl.col("o_orderdate").dt.year().alias("o_year"),
+            (pl.col("l_extendedprice") * (1 - pl.col("l_discount"))).alias("volume"),
+            pl.col("n_name").alias("nation"),
+        )
+        .with_columns(
+            pl.when(pl.col("nation") == var1)
+            .then(pl.col("volume"))
+            .otherwise(0)
+            .alias("_tmp")
+        )
+        .group_by("o_year")
+        .agg((pl.sum("_tmp") / pl.sum("volume")).round(2).alias("mkt_share"))
+        .sort("o_year")
+    )
+
+
+def q9(lineitem, nation, orders, partsupp, supplier, part, **kwargs):
+    return (
+        part.join(partsupp, left_on="p_partkey", right_on="ps_partkey")
+        .join(supplier, left_on="ps_suppkey", right_on="s_suppkey")
+        .join(
+            lineitem,
+            left_on=["p_partkey", "ps_suppkey"],
+            right_on=["l_partkey", "l_suppkey"],
+        )
+        .join(orders, left_on="l_orderkey", right_on="o_orderkey")
+        .join(nation, left_on="s_nationkey", right_on="n_nationkey")
+        .filter(pl.col("p_name").str.contains("green"))
+        .select(
+            pl.col("n_name").alias("nation"),
+            pl.col("o_orderdate").dt.year().alias("o_year"),
+            (
+                pl.col("l_extendedprice") * (1 - pl.col("l_discount"))
+                - pl.col("ps_supplycost") * pl.col("l_quantity")
+            ).alias("amount"),
+        )
+        .group_by("nation", "o_year")
+        .agg(pl.sum("amount").round(2).alias("sum_profit"))
+        .sort(by=["nation", "o_year"], descending=[False, True])
+    )
+
+
 def q10(customer, lineitem, nation, orders, **kwargs):
-    var1 = pl.lit("1993-10-01")
-    var2 = pl.lit("1994-01-01")
+    var1 = date(1993, 10, 1)
+    var2 = date(1994, 1, 1)
 
     return (
         customer.join(orders, left_on="c_custkey", right_on="o_custkey")
@@ -205,8 +341,8 @@ def q11(nation, partsupp, supplier, scale_factor=1.0, **kwargs):
 def q12(lineitem, orders, **kwargs):
     var1 = "MAIL"
     var2 = "SHIP"
-    var3 = pl.lit("1994-01-01")
-    var4 = pl.lit("1995-01-01")
+    var3 = date(1994, 1, 1)
+    var4 = date(1995, 1, 1)
 
     return (
         orders.join(lineitem, left_on="o_orderkey", right_on="l_orderkey")
@@ -226,9 +362,47 @@ def q12(lineitem, orders, **kwargs):
     )
 
 
+def q13(customer, orders, **kwargs):
+    var1 = "special"
+    var2 = "requests"
+
+    orders = orders.filter(pl.col("o_comment").str.contains(f"{var1}.*{var2}").not_())
+    return (
+        customer.join(orders, left_on="c_custkey", right_on="o_custkey", how="left")
+        .group_by("c_custkey")
+        .agg(pl.col("o_orderkey").count().alias("c_count"))
+        .group_by("c_count")
+        .len()
+        .select(pl.col("c_count"), pl.col("len").alias("custdist"))
+        .sort(by=["custdist", "c_count"], descending=[True, True])
+    )
+
+
+def q14(lineitem, part, **kwargs):
+    var1 = date(1995, 9, 1)
+    var2 = date(1995, 10, 1)
+
+    return (
+        lineitem.join(part, left_on="l_partkey", right_on="p_partkey")
+        .filter(pl.col("l_shipdate").is_between(var1, var2, closed="left"))
+        .select(
+            (
+                100.00
+                * pl.when(pl.col("p_type").str.starts_with("PROMO"))
+                .then(pl.col("l_extendedprice") * (1 - pl.col("l_discount")))
+                .otherwise(0)
+                .sum()
+                / (pl.col("l_extendedprice") * (1 - pl.col("l_discount"))).sum()
+            )
+            .round(2)
+            .alias("promo_revenue")
+        )
+    )
+
+
 def q15(lineitem, supplier, **kwargs):
-    var1 = pl.lit("1996-01-01")
-    var2 = pl.lit("1996-04-01")
+    var1 = date(1996, 1, 1)
+    var2 = date(1996, 4, 1)
 
     revenue = (
         lineitem.filter(pl.col("l_shipdate").is_between(var1, var2, closed="left"))
@@ -247,6 +421,28 @@ def q15(lineitem, supplier, **kwargs):
         .with_columns(pl.col("total_revenue").round(2))
         .select("s_suppkey", "s_name", "s_address", "s_phone", "total_revenue")
         .sort("s_suppkey")
+    )
+
+
+def q16(partsupp, supplier, part, **kwargs):
+    var1 = "Brand#45"
+
+    supplier = supplier.filter(
+        pl.col("s_comment").str.contains(".*Customer.*Complaints.*")
+    ).select(pl.col("s_suppkey"), pl.col("s_suppkey").alias("ps_suppkey"))
+
+    return (
+        part.join(partsupp, left_on="p_partkey", right_on="ps_partkey")
+        .filter(pl.col("p_brand") != var1)
+        .filter(pl.col("p_type").str.contains("MEDIUM POLISHED*").not_())
+        .filter(pl.col("p_size").is_in([49, 14, 23, 45, 19, 3, 36, 9]))
+        .join(supplier, left_on="ps_suppkey", right_on="s_suppkey", how="anti")
+        .group_by("p_brand", "p_type", "p_size")
+        .agg(pl.col("ps_suppkey").n_unique().alias("supplier_cnt"))
+        .sort(
+            by=["supplier_cnt", "p_brand", "p_type", "p_size"],
+            descending=[True, False, False, False],
+        )
     )
 
 
@@ -338,6 +534,37 @@ def q19(lineitem, part, **kwargs):
     )
 
 
+def q20(lineitem, nation, partsupp, supplier, part, **kwargs):
+    var1 = date(1994, 1, 1)
+    var2 = date(1995, 1, 1)
+    var3 = "CANADA"
+    var4 = "forest"
+
+    q1 = (
+        lineitem.filter(pl.col("l_shipdate").is_between(var1, var2, closed="left"))
+        .group_by("l_partkey", "l_suppkey")
+        .agg((pl.col("l_quantity").sum() * 0.5).alias("sum_quantity"))
+    )
+    q2 = nation.filter(pl.col("n_name") == var3)
+    q3 = supplier.join(q2, left_on="s_nationkey", right_on="n_nationkey")
+
+    return (
+        part.filter(pl.col("p_name").str.starts_with(var4))
+        .select(pl.col("p_partkey").unique())
+        .join(partsupp, left_on="p_partkey", right_on="ps_partkey")
+        .join(
+            q1,
+            left_on=["ps_suppkey", "p_partkey"],
+            right_on=["l_suppkey", "l_partkey"],
+        )
+        .filter(pl.col("ps_availqty") > pl.col("sum_quantity"))
+        .select(pl.col("ps_suppkey").unique())
+        .join(q3, left_on="ps_suppkey", right_on="s_suppkey")
+        .select("s_name", "s_address")
+        .sort("s_name")
+    )
+
+
 def q21(lineitem, nation, orders, supplier, **kwargs):
     var1 = "SAUDI ARABIA"
 
@@ -375,4 +602,28 @@ def q21(lineitem, nation, orders, supplier, **kwargs):
         .agg(pl.len().alias("numwait"))
         .sort(by=["numwait", "s_name"], descending=[True, False])
         .head(100)
+    )
+
+
+def q22(customer, orders, **kwargs):
+    q1 = (
+        customer.with_columns(pl.col("c_phone").str.slice(0, 2).alias("cntrycode"))
+        .filter(pl.col("cntrycode").str.contains("13|31|23|29|30|18|17"))
+        .select("c_acctbal", "c_custkey", "cntrycode")
+    )
+
+    q2 = q1.filter(pl.col("c_acctbal") > 0.0).select(
+        pl.col("c_acctbal").mean().alias("avg_acctbal")
+    )
+
+    return (
+        q1.join(orders, left_on="c_custkey", right_on="o_custkey", how="anti")
+        .join(q2, how="cross")
+        .filter(pl.col("c_acctbal") > pl.col("avg_acctbal"))
+        .group_by("cntrycode")
+        .agg(
+            pl.col("c_acctbal").count().alias("numcust"),
+            pl.col("c_acctbal").sum().round(2).alias("totacctbal"),
+        )
+        .sort("cntrycode")
     )

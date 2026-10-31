@@ -18,6 +18,7 @@ var book = initBookWithToc:
     entry("Joins", "joins")
     entry("Concatenation", "concatenation")
     entry("CSV", "csv")
+    entry("Parquet", "parquet")
   section("Python Polars: The Definitive Guide", "definitive-guide/index.md"):
     entry("Beginning expressions", "beginning_expressions")
     entry("Filtering and sorting rows", "filtering_and_sorting")

@@ -3,6 +3,7 @@ import nimibook
 var book = initBookWithToc:
   entry("Introduction", "index", numbered = false)
   section("Polars user guide", "user-guide/index.md"):
+    entry("Getting started", "getting_started")
     entry("Expressions and contexts", "expressions_and_contexts")
     entry("Lazy API", "lazy_api")
     entry("Basic operations", "basic_operations")

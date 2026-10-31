@@ -12,6 +12,12 @@ var book = initBookWithToc:
     entry("Joins", "joins")
     entry("Concatenation", "concatenation")
     entry("CSV", "csv")
+  section("Python Polars: The Definitive Guide", "definitive-guide/index.md"):
+    entry("Beginning expressions", "beginning_expressions")
+    entry("Filtering and sorting rows", "filtering_and_sorting")
+    entry("Joining and concatenating", "joining_and_concatenating")
+  section("Polars Cookbook", "polars-cookbook/index.md"):
+    entry("Getting started", "getting_started")
   section("Benchmarks", "benchmarks/index.md"):
     entry("One Billion Row Challenge", "one_billion_rows")
     entry("PDS-H queries", "pds_h")

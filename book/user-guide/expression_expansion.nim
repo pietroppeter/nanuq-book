@@ -1,6 +1,5 @@
 import nanuqbook
-nbInit(theme = useNimibook)
-bookStyle()
+bookInit()
 
 nbText: "# Expression expansion"
 
@@ -423,4 +422,4 @@ Nanuq does not have selectors as a separate module yet. Its `col` covers selecti
 name, regular expression, Nim type and type family, plus `exclude`.
 """
 
-nbSave
+bookSave()

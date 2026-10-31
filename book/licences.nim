@@ -1,5 +1,5 @@
 import nanuqbook
-nbInit(theme = useNimibook)
+bookInit()
 
 nbText: """
 # Sources and licences
@@ -22,4 +22,4 @@ and assets have their own licences (MPL-2.0 theme, fonts under Apache 2.0 and SI
 highlight.js under BSD-3-Clause, clipboard.js and KaTeX under MIT).
 """
 
-nbSave
+bookSave()

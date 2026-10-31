@@ -1,6 +1,5 @@
 import nanuqbook
-nbInit(theme = useNimibook)
-bookStyle()
+bookInit()
 
 nbText: """
 # The Nanuq Book
@@ -53,4 +52,4 @@ Nanuq, and is checked every week against Nanuq's main branch, so that changes th
 chapter show up early.
 """
 
-nbSave
+bookSave()

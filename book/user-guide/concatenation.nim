@@ -1,6 +1,5 @@
 import nanuqbook
-nbInit(theme = useNimibook)
-bookStyle()
+bookInit()
 
 nbText: "# Concatenation"
 
@@ -96,4 +95,4 @@ When the dataframe shapes do not match and we have an overlapping semantic key t
 [we can join the dataframes](joins.html) instead of concatenating them.
 """
 
-nbSave
+bookSave()

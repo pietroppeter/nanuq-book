@@ -56,11 +56,16 @@ when the book is built: the Python code runs through [nimpy](https://github.com/
 with the Python Polars version pinned in `pyproject.toml`. A Python cell that ends with an
 expression shows its value, as in a notebook.
 
+The look follows the Nanuq dev log (its palette, fonts and code cells) on top of
+nimibook's layout; the theme is in `book/nanuqbook.nim`, and every page ends with a
+"Show source" button.
+
 ## Adding a chapter
 
 1. Check the source's licence (see above).
 2. Write `book/<source>/<page>.nim` (Nim module names can't contain `-`): start with
-   `attribution` (see `book/nanuqbook.nim`), and give each example as
+   `import nanuqbook`, `bookInit()` and `attribution` (see `book/nanuqbook.nim`), end with
+   `bookSave()` (it adds the "Show source" button), and give each example as
    `tabs "<python code>": <nbCode and nbShow blocks>`. Python with no Nim version yet goes
    in `python "<code>"`. Say which sections were left out and why.
 3. Add the chapter to `nbook.nim`, and the source to `book/licences.nim` and `licenses/`.

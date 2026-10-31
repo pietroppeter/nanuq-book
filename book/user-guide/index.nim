@@ -1,5 +1,5 @@
 import nanuqbook
-nbInit(theme = useNimibook)
+bookInit()
 
 nbText: """
 # Polars user guide
@@ -10,4 +10,4 @@ Sections that need features Nanuq does not have yet are left out, and each chapt
 which ones.
 """
 
-nbSave
+bookSave()

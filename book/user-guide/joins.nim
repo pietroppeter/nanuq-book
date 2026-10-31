@@ -1,6 +1,5 @@
 import nanuqbook
-nbInit(theme = useNimibook)
-bookStyle()
+bookInit()
 
 nbText: "# Joins"
 
@@ -304,4 +303,4 @@ nbText: """
   before each trade. They also need datetime columns.
 """
 
-nbSave
+bookSave()

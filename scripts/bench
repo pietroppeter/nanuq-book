@@ -1,0 +1,22 @@
+#!/bin/sh
+# Runs a benchmark chapter of the book at full size, on this machine:
+#
+#   scripts/bench 1brc|pdsh [nim options]
+#
+# e.g. `scripts/bench 1brc -d:benchRows=100000000 -d:benchLabel=my-laptop` or
+# `scripts/bench pdsh -d:benchScale=10`.
+# The chapter times the Nim and the Python queries, writes the timings and the
+# machine's specs to results/<benchmark>/<timestamp>[-label].json, commits that
+# file, and rebuilds its page. Needs Nim (with nimble), uv and git; run it from the
+# repository root. It installs the book's Nim and Python dependencies first.
+set -e
+cd "$(dirname "$0")/.."
+case "$1" in
+  1brc) chapter=book/benchmarks/one_billion_rows.nim ;;
+  pdsh) chapter=book/benchmarks/pds_h.nim ;;
+  *) echo "usage: scripts/bench 1brc|pdsh [nim options]" >&2; exit 2 ;;
+esac
+shift
+nimble install -y --depsOnly
+uv sync --locked --quiet
+exec uv run nim r -d:release -d:bench --hints:off "$@" "$chapter"

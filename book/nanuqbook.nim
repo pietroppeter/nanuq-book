@@ -4,7 +4,7 @@
 ## (Nim first), like the Rust/Python tabs of the Polars user guide. Both sides run when
 ## the book is built: the Nim blocks as usual, the Python code through nimpy in the uv
 ## environment of the repo (`uv run nimble genbook`).
-import std/[strutils, os, osproc, xmltree, json]
+import std/[strutils, os, osproc, xmltree, json, algorithm]
 import nimib, nimibook, nimpy, markdown
 import nimpy/py_lib as pyLib
 export nimib, nimibook
@@ -118,22 +118,51 @@ proc lastFrame(html: string): string =
   if start < 0: return ""
   html[start ..< stop + "</table>".len]
 
+proc sortedRows(frame: string): string =
+  ## The table with its body rows sorted, so that two frames with the same rows in a
+  ## different order compare equal (a `group_by` without `maintain_order` gives its
+  ## groups in any order).
+  let start = frame.find("<tbody>")
+  let stop = frame.rfind("</tbody>")
+  if start < 0 or stop < start: return frame
+  var rows = frame[start + "<tbody>".len ..< stop].split("</tr>")
+  rows.sort()
+  frame[0 ..< start] & rows.join("</tr>") & frame[stop .. ^1]
+
 proc checkSameFrame*(nimHtml, pythonShown, py: string) =
   ## Fails the build when the Python cell shows a DataFrame that differs from the
-  ## last one the Nim side shows.
+  ## last one the Nim side shows. Row order is not compared.
   let pyFrame = lastFrame(pythonShown)
   if pyFrame.len == 0: return
   let nimFrame = lastFrame(nimHtml)
   if nimFrame.len == 0:
     raise newException(ValueError, "the Python cell shows a DataFrame and the Nim tab " &
       "shows none:\n" & py)
-  if nimFrame != pyFrame:
+  if nimFrame != pyFrame and sortedRows(nimFrame) != sortedRows(pyFrame):
     raise newException(ValueError, "Nim and Python show different DataFrames for:\n" &
       py & "\n--- nim:\n" & nimFrame & "\n--- python:\n" & pyFrame)
 
 
 const nimLabel = "👑 Nim"
 const pythonLabel = "🐍 Python"
+
+proc tabsHtml*(nimSide, pySide: string): string =
+  "<div class=\"nq-tabs\"><div class=\"nq-tablist\" role=\"tablist\">" &
+    "<button class=\"nq-tab\" role=\"tab\" data-lang=\"nim\" aria-selected=\"true\">" & nimLabel & "</button>" &
+    "<button class=\"nq-tab\" role=\"tab\" data-lang=\"python\" aria-selected=\"false\">" & pythonLabel & "</button></div>" &
+    "<div class=\"nq-panel\" data-lang=\"nim\">" & nimSide & "</div>" &
+    "<div class=\"nq-panel\" data-lang=\"python\" hidden>" & pySide & "</div></div>"
+
+proc fileTabs*(nimPath, pyPath: string): string =
+  ## Two source files in tabs, shown and not run: a Nim module and its Python twin.
+  proc link(path: string): string =
+    let rel = path.relativePath(getCurrentDir() / "..").replace('\\', '/')
+    "<p class=\"nq-file\"><a href=\"https://github.com/pietroppeter/nanuq-book/blob/main/" &
+      rel & "\">" & rel & "</a></p>"
+  tabsHtml(link(nimPath) & "<pre><code class=\"nim-file nohighlight nim hljs\">" &
+             highlightNim(readFile(nimPath).strip) & "</code></pre>",
+           link(pyPath) & "<pre><code class=\"language-python py-file hljs\">" &
+             xmltree.escape(readFile(pyPath).strip) & "</code></pre>")
 
 template tabs*(py: string, body: untyped) =
   ## A Nim port (the blocks in `body`) and the original `py` code, in tabs, Nim
@@ -147,11 +176,7 @@ template tabs*(py: string, body: untyped) =
   nb.blocks.setLen(first)
   let (pySide, pyShown) = pythonHtml(py.strip)
   checkSameFrame(nimSide, pyShown, py.strip)
-  nbRawHtml: "<div class=\"nq-tabs\"><div class=\"nq-tablist\" role=\"tablist\">" &
-    "<button class=\"nq-tab\" role=\"tab\" data-lang=\"nim\" aria-selected=\"true\">" & nimLabel & "</button>" &
-    "<button class=\"nq-tab\" role=\"tab\" data-lang=\"python\" aria-selected=\"false\">" & pythonLabel & "</button></div>" &
-    "<div class=\"nq-panel\" data-lang=\"nim\">" & nimSide & "</div>" &
-    "<div class=\"nq-panel\" data-lang=\"python\" hidden>" & pySide & "</div></div>"
+  nbRawHtml: tabsHtml(nimSide, pySide)
 
 template python*(code: string) =
   ## Python that runs without a Nim counterpart (shown in its own block).

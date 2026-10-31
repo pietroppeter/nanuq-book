@@ -11,7 +11,7 @@ nanuq """
 [polars-benchmark](https://github.com/pola-rs/polars-benchmark), by the Polars
 contributors, licensed under the
 [Apache License 2.0](https://github.com/pietroppeter/nanuq-book/blob/main/licenses/polars-benchmark-Apache-2.0.txt).
-The data comes from [tpchgen-cli](https://github.com/clflushopt/tpchgen-rs), which
+The data comes from [tpchgen-cli](https://github.com/datafusion-contrib/tpchgen-rs), which
 generates the TPC-H tables; it is made on the fly and never stored in the repository.
 PDS-H is derived from TPC-H, but these results are not comparable to published TPC-H
 results. The text is the book's own.

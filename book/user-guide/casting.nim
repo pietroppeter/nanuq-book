@@ -9,19 +9,24 @@ attribution userGuide("Casting", "expressions/casting",
   "dates yet).")
 
 nbText: """
-Casting converts the underlying data type of a column to a new one. Casting is available
-through the function `cast`.
+Casting converts the
+[underlying data type of a column](https://docs.pola.rs/user-guide/concepts/data-types-and-structures/)
+to a new one. Casting is available through the function `cast`.
 
 The function `cast` includes a parameter `strict` that determines how Polars behaves when it
 encounters a value that cannot be converted from the source data type to the target data
-type. The default behaviour is `strict=True`, which means that Polars will throw an error to
+type. The default behaviour is `strict=True`, which means that Polars will thrown an error to
 notify the user of the failed conversion while also providing details on the values that
 couldn't be cast. On the other hand, if `strict=False`, any values that cannot be converted
 to the target data type will be quietly converted to `null`.
+"""
 
+nanuq """
 In Nanuq the target is a data type constant with Polars' name (`Float32`, `Int32`) or a Nim
 type (`float32`, `int32`), and `cast` is called after a dot, since `cast` is a Nim keyword.
+"""
 
+nbText: """
 ## Basic example
 
 Let's take a look at the following dataframe which contains both integers and floating point
@@ -72,9 +77,13 @@ Note that floating point numbers are truncated when casting to an integer data t
 ## Downcasting numerical data types
 
 You can reduce the memory footprint of a column by changing the precision associated with
-its numeric data type. As an illustration, the code below casts from `Int64` to `Int16` and
-from `Float64` to `Float32` (the original also prints the memory size before and after,
-with `estimated_size`):
+its numeric data type. As an illustration, the code below demonstrates how casting from
+`Int64` to `Int16` and from `Float64` to `Float32` can be used to lower memory usage:
+"""
+
+nanuq """
+The original prints the memory size before and after, with `estimated_size`, which is not in
+Nanuq yet. Here both sides show the downcast dataframe instead.
 """
 
 tabs """
@@ -95,7 +104,11 @@ When performing downcasting it is crucial to ensure that the chosen number of bi
 For example, a 32-bit signed integer (`Int32`) represents integers between -2147483648 and
 2147483647, inclusive, while an 8-bit signed integer only represents integers between -128
 and 127, inclusive. Attempting to downcast to a data type with insufficient precision
-results in an error thrown by Polars, which arrives in Nanuq as a `NanuqError`:
+results in an error thrown by Polars:
+"""
+
+nanuq """
+In Nanuq, the Polars error arrives as a `NanuqError`, with Polars' message.
 """
 
 tabs """
@@ -220,5 +233,10 @@ df.select(
       col("floats").cast(Boolean),
       col("bools").cast(Int8))
     nbShow booleans
+
+nanuq """
+The original ends with a section on parsing and formatting temporal data types. Nanuq has no
+dates yet, so it is left out.
+"""
 
 bookSave()

@@ -69,7 +69,10 @@ nimibook's layout; the styles and script are in `theme/`, and every Nim page end
    `import nanuqbook`, `bookInit()` and `attribution` (see `book/nanuqbook.nim`), end with
    `bookSave()` (it adds the "Show source" button), and give each example as
    `tabs "<python code>": <nbCode blocks>`, with `nbShow` inside the `nbCode` so readers
-   see it. Python with no Nim version yet goes in `python "<code>"`. Say which sections were left out and why.
+   see it. Python with no Nim version yet goes in `python "<code>"`. Keep the text of the
+   original as it is; every remark of the book (how Nanuq differs, what it lacks, which
+   sections were left out and why) goes in `nanuq "<markdown>"`, which renders as a
+   separate "🐻‍❄️ Nanuq" box.
 3. Add the chapter to `nbook.nim`, and the source to `book/licences.md` and `licenses/`.
 
 Pages that run no code (section intros, the licences page) are plain Markdown (`.md`),

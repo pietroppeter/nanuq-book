@@ -5,7 +5,7 @@
 ## the book is built: the Nim blocks as usual, the Python code through nimpy in the uv
 ## environment of the repo (`uv run nimble genbook`).
 import std/[strutils, os, osproc, xmltree, json]
-import nimib, nimibook, nimpy
+import nimib, nimibook, nimpy, markdown
 import nimpy/py_lib as pyLib
 export nimib, nimibook
 
@@ -15,11 +15,22 @@ type Source* = object
   license*, licenseUrl*: string
   changes*: string           ## what this port changes, in one or two sentences
 
+proc noteHtml(label, text: string): string =
+  "<aside class=\"nq-note\"><p class=\"nq-note-label\">" & label & "</p>" &
+    markdown(text, config = initGfmConfig()) & "</aside>"
+
+template nanuq*(text: string) =
+  ## A remark of the Nanuq book (how Nanuq differs, what it lacks), set apart from the
+  ## text of the original page, which is kept as it is.
+  nbRawHtml: noteHtml("🐻‍❄️ Nanuq", text)
+
 template attribution*(s: Source) =
   ## The box at the top of every ported chapter: where it comes from, under which
   ## licence, and what changed.
-  nbText: "> **Ported from** [" & s.title & "](" & s.url & ") by " & s.authors &
-    ", licensed under [" & s.license & "](" & s.licenseUrl & "). " & s.changes
+  nbRawHtml: noteHtml("🐻‍❄️ About this port", "**Ported from** [" & s.title & "](" & s.url &
+    ") by " & s.authors & ", licensed under [" & s.license & "](" & s.licenseUrl & "). " &
+    "The text of the original is kept as it is; the Nanuq book's own remarks are in " &
+    "boxes like this one. " & s.changes)
 
 const polarsGuide* = Source(
   authors: "the Polars contributors",

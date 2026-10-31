@@ -15,17 +15,21 @@ There are a number of ways to concatenate data from separate DataFrames:
 - two dataframes with **non-overlapping columns** can be **horizontally** concatenated to
   make a **wider** dataframe
 - two dataframes with **different numbers of rows and columns** can be **diagonally**
-  concatenated to make a dataframe which might be longer and/or wider. Where column names
+  concatenated to make a dataframe which might be longer and/ or wider. Where column names
   overlap values will be vertically concatenated. Where column names do not overlap new rows
   and columns will be added. Missing values will be set as `null`
+"""
 
+nanuq """
 In Nanuq `concat` takes the frames as an array and the method as a value of the enum
 `ConcatMethod`, where Python uses strings (`how="vertical"`).
+"""
 
-## Vertical concatenation: getting longer
+nbText: """
+## Vertical concatenation - getting longer
 
-In a vertical concatenation you combine all of the rows from a list of DataFrames into a
-single longer DataFrame.
+In a vertical concatenation you combine all of the rows from a list of `DataFrames` into a
+single longer `DataFrame`.
 """
 
 tabs """
@@ -46,10 +50,10 @@ pl.concat([df_v1, df_v2], how="vertical")
 nbText: """
 Vertical concatenation fails when the dataframes do not have the same column names.
 
-## Horizontal concatenation: getting wider
+## Horizontal concatenation - getting wider
 
-In a horizontal concatenation you combine all of the columns from a list of DataFrames into
-a single wider DataFrame.
+In a horizontal concatenation you combine all of the columns from a list of `DataFrames`
+into a single wider `DataFrame`.
 """
 
 tabs """
@@ -64,14 +68,22 @@ pl.concat([df_h1, df_h2], how="horizontal")
     nbShow dfHorizontalConcat
 
 nbText: """
-Horizontal concatenation fails when dataframes have overlapping columns. Python Polars
-also offers `how="horizontal_extend"` for dataframes of different heights, which pads the
-shorter columns with `null`; Nanuq does not have it yet.
+Horizontal concatenation fails when dataframes have overlapping columns. Moreover, it is
+required that both dataframes have the same height. To combine dataframes with different
+height, use `how="horizontal_extend"`, which pads shorter columns with `null` values at the
+end to match the height of the longest dataframe.
+"""
 
-## Diagonal concatenation: getting longer, wider and `null`ier
+nanuq """
+Nanuq does not have `how="horizontal_extend"` yet, so the original's example of it is left
+out.
+"""
 
-In a diagonal concatenation you combine all of the rows and columns from a list of
-DataFrames into a single longer and/or wider DataFrame.
+nbText: """
+## Diagonal concatenation - getting longer, wider and `null`ier
+
+In a diagonal concatenation you combine all of the row and columns from a list of
+`DataFrames` into a single longer and/or wider `DataFrame`.
 """
 
 tabs """
@@ -90,6 +102,11 @@ Diagonal concatenation generates nulls when the column names do not overlap.
 
 When the dataframe shapes do not match and we have an overlapping semantic key then
 [we can join the dataframes](joins.html) instead of concatenating them.
+"""
+
+nanuq """
+The original ends with a section on rechunking. Nanuq's `concat` has no `rechunk` option
+yet, so it is left out.
 """
 
 bookSave()

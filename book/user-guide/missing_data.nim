@@ -19,11 +19,16 @@ used for all data types, including numerical types.
 
 Polars also supports the value `NaN` (“Not a Number”) for columns with floating point
 numbers. The value `NaN` is considered to be a valid floating point value, which is
-different from missing data. We discuss the value `NaN` separately below.
+different from missing data.
+[We discuss the value `NaN` separately below](#not-a-number-or-nan-values).
 
 When creating a series or a dataframe, you can set a value to `null` by using the
-appropriate construct for your language. In Python that is `None`; in Nim a column with
-missing values is built from `Option` values, `some(x)` and `none(T)`:
+appropriate construct for your language:
+"""
+
+nanuq """
+In Python that is `None`; in Nim a column with missing values is built from `Option`
+values, `some(x)` and `none(T)`.
 """
 
 tabs """
@@ -54,8 +59,13 @@ metadata allows Polars to answer some basic queries about missing values in a ve
 efficient way, namely how many values are missing and which ones are missing.
 
 To determine how many values are missing from a column you can use the function
-`null_count`. In Nanuq, `df.nullCount("value")` gives the count for one column as an
-`int`; for the same dataframe as in Python, sum the `isNull` flags of each column:
+`null_count`:
+"""
+
+nanuq """
+Nanuq has no `null_count` on a whole dataframe yet. `df.nullCount("value")` gives the count
+for one column as an `int`; for the same dataframe as in Python, sum the `isNull` flags of
+each column.
 """
 
 tabs """
@@ -66,11 +76,18 @@ df.null_count()
     nbShow nullCountDf
 
 nbText: """
+The function `null_count` can be called on a dataframe, a column from a dataframe, or on a
+series directly. The function `null_count` is a cheap operation because the result is
+already known.
+
 Polars uses something called a “validity bitmap” to know which values are missing in a
 series. The validity bitmap is memory efficient as it is bit encoded. If a series has length
-*n*, then its validity bitmap will cost *n* / 8 bytes. The function `is_null` (`isNull` in
-Nanuq) uses the validity bitmap to efficiently report which values are `null` and which are
-not:
+*n*, then its validity bitmap will cost *n* / 8 bytes. The function `is_null` uses the
+validity bitmap to efficiently report which values are `null` and which are not:
+"""
+
+nanuq """
+In Nanuq it is `isNull`, and `fill_null` below is `fillNull`.
 """
 
 tabs """
@@ -83,15 +100,25 @@ df.select(
     nbShow isNullSeries
 
 nbText: """
+The function `is_null` can be used on a column of a dataframe or on a series directly.
+Again, this is a cheap operation because the result is already known by Polars.
+
+> **Why does Polars waste memory on a validity bitmap?**
+>
+> It all comes down to a tradeoff. By using a bit more memory per column, Polars can be much
+> more efficient when performing most operations on your columns. If the validity bitmap
+> wasn't known, every time you wanted to compute something you would have to check each
+> position of the series to see if a legal value was present or not. With the validity
+> bitmap, Polars knows automatically the positions where your operations can be applied.
+
 ## Filling missing data
 
-Missing data in a series can be filled with the function `fill_null` (`fillNull`). You can
-specify how missing data is effectively filled in a couple of different ways:
+Missing data in a series can be filled with the function `fill_null`. You can specify how missing data is effectively filled in a couple of different ways:
 
 - a literal of the correct data type;
 - a Polars expression, such as replacing with values computed from another column;
 - a strategy based on neighbouring values, such as filling forwards or backwards; and
-- interpolation (not in Nanuq yet).
+- interpolation.
 
 To illustrate how each of these methods work we start by defining a simple dataframe with
 two missing values in the second column:
@@ -129,9 +156,9 @@ df.with_columns(
     nbShow fillLiteralDf
 
 nbText: """
-However, this is actually just a special case of the general case where the function
-`fill_null` replaces missing values with the corresponding values from the result of a
-Polars expression, as seen next.
+However, this is actually just a special case of the general case where
+[the function `fill_null` replaces missing values with the corresponding values from the result of a Polars expression](#fill-with-a-strategy-based-on-neighbouring-values),
+as seen next.
 
 ### Fill with an expression
 
@@ -155,8 +182,11 @@ nbText: """
 
 You can also fill the missing data by following a fill strategy based on the neighbouring
 values. The two simpler strategies look for the first non-`null` value that comes
-immediately before or immediately after the value `null` that is being filled. In Nanuq a
-strategy is a value of the enum `FillNullStrategy`, where Python uses a string:
+immediately before or immediately after the value `null` that is being filled:
+"""
+
+nanuq """
+In Nanuq a strategy is a value of the enum `FillNullStrategy`, where Python uses a string.
 """
 
 tabs """
@@ -172,8 +202,16 @@ df.with_columns(
     nbShow fillForwardDf
 
 nbText: """
-Other strategies fill with the column's `Min`, `Max`, `Mean`, `Zero` or `One`.
+You can find other fill strategies in the API docs.
+"""
 
+nanuq """
+Nanuq's other strategies fill with the column's `Min`, `Max`, `Mean`, `Zero` or `One`. The
+original's next section, “Fill with interpolation”, is left out: `interpolate` is not in
+Nanuq yet.
+"""
+
+nbText: """
 ## Not a Number, or `NaN` values
 
 Missing data in a series is only ever represented by the value `null`, regardless of the
@@ -198,9 +236,14 @@ nan_df
     nbShow nanDf
 
 nbText: """
-And it might also arise as the result of a computation. One difference here: in Nanuq 0.2,
-`/` between two integer columns is an integer division, as in Rust Polars, while Python's
-`/` always divides as floats. So the Nim side casts the dividend to `float` first:
+And it might also arise as the result of a computation:
+"""
+
+nanuq """
+In Nanuq 0.2, `/` between two integer columns is an integer division, as in Rust Polars,
+while Python's `/` always divides as floats. So the Nim side casts the dividend to `float`
+first. This choice is debated and may change in a later Nanuq: `/` could become a float
+division, as in Python Polars and in Nim itself, leaving integer division to `div`.
 """
 
 tabs """
@@ -218,6 +261,9 @@ df.select(pl.col("dividend") / pl.col("divisor"))
     nbShow divided
 
 nbText: """
+> By default, a `NaN` value in an integer column causes the column to be cast to a float
+> data type in pandas. This does not happen in Polars; instead, an exception is raised.
+
 `NaN` values are considered to be a type of floating point data and are **not considered to
 be missing data** in Polars. This means:
 
@@ -233,7 +279,11 @@ One further difference between the values `null` and `NaN` is that numerical agg
 functions, like `mean` and `sum`, skip the missing values when computing the result, whereas
 the value `NaN` is considered for the computation and typically propagates into the result.
 If desirable, this behavior can be avoided by replacing the occurrences of the value `NaN`
-with the value `null`. Nanuq has no `fill_nan` yet, so this one runs in Python only:
+with the value `null`:
+"""
+
+nanuq """
+Nanuq has no `fill_nan` yet, so this one runs in Python only.
 """
 
 python """
@@ -243,6 +293,11 @@ nan_df.with_columns(
     pl.all().mean().name.suffix("_mean"),
     pl.all().sum().name.suffix("_sum"),
 )
+"""
+
+nbText: """
+You can learn more about the value `NaN` in
+[the section about floating point number data types](https://docs.pola.rs/user-guide/concepts/data-types-and-structures/#floating-point-numbers).
 """
 
 bookSave()

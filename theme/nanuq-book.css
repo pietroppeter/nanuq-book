@@ -114,8 +114,14 @@ code, pre, pre code, .hljs { font-family: var(--mono) !important; font-variant-l
 .nq-panel > pre:first-child { margin-top: 0; }
 .nq-panel > pre:first-child > code { border-top-left-radius: 0; }
 .nq-python-only { margin: 2rem 0; }
-/* the attribution box at the top of a ported chapter */
 .content blockquote strong { color: var(--ink); }
+/* the book's own remarks (and the attribution box), set apart from the original text */
+.nq-note { margin: 1.8rem 0; padding: .9rem 1.4rem 1rem; background: var(--floe);
+  border: 1px solid var(--rule); border-left: 4px solid var(--num); border-radius: 0 6px 6px 0; }
+.nq-note > p.nq-note-label { margin: 0 0 .3rem; font: 700 1.15rem/1.4 var(--display);
+  letter-spacing: .08em; text-transform: uppercase; color: var(--num); }
+.nq-note > :last-child { margin-bottom: 0; }
+.nq-note p, .nq-note li { font-size: .94em; }
 /* "Show source": the page's own nimib source, folded at the end */
 details.nq-source { margin: 4rem 0 1rem; }
 details.nq-source summary { cursor: pointer; width: max-content; font: 600 1.2rem/1 var(--mono);

@@ -50,7 +50,9 @@ nbText: """
 Polars supports basic arithmetic between series of the same length, or between series and
 literals. When literals are mixed with series, the literals are broadcast to match the
 length of the series they are being used with.
+"""
 
+nanuq """
 In Nim, the power operator is `^` and the remainder is `mod` (with Polars' meaning: the
 result takes the sign of the divisor, as `%` does in Python).
 """
@@ -79,9 +81,21 @@ nbText: """
 The example above shows that when an arithmetic operation takes `null` as one of its
 operands, the result is `null`.
 
+Polars uses operator overloading to allow you to use your language's native arithmetic
+operators within your expressions. If you prefer, in Python you can use the corresponding
+named functions.
+"""
+
+nanuq """
+The original shows the named functions (`add`, `sub`, `mul`, …) here. Nanuq has only the
+operators.
+"""
+
+nbText: """
 ## Comparisons
 
-Like with arithmetic operations, Polars supports comparisons via the overloaded operators:
+Like with arithmetic operations, Polars supports comparisons via the overloaded operators or
+named functions:
 """
 
 tabs """
@@ -105,11 +119,16 @@ df.select(
     nbShow comparisons
 
 nbText: """
-## Boolean operations
+## Boolean and bitwise operations
 
-Python uses the operators `&`, `|` and `~` for the Boolean operations “and”, “or” and
-“not”, because its keywords `and`, `or` and `not` can't be overloaded. Nim can overload
-them, so Nanuq uses the keywords:
+Depending on the language, you may use the operators `&`, `|`, and `~`, for the Boolean
+operations “and”, “or”, and “not”, respectively, or the functions of the same name:
+"""
+
+nanuq """
+Python overloads `&`, `|` and `~` because its keywords `and`, `or` and `not` can't be
+overloaded. Nim's can, so Nanuq uses the keywords `and`, `or` and `not`. The bitwise
+operations that follow in the original are not in Nanuq yet.
 """
 
 tabs """
@@ -131,10 +150,19 @@ df.select(
     nbShow booleans
 
 nbText: """
-## Counting unique values
+## Counting (unique) values
 
-The function `n_unique` (`nUnique` in Nanuq) counts the exact number of unique values in a
-series:
+Polars has two functions to count the number of unique values in a series. The function
+`n_unique` can be used to count the exact number of unique values in a series. However, for
+very large data sets, this operation can be quite slow. In those cases, if an approximation
+is good enough, you can use the function `approx_n_unique` that uses the algorithm
+[HyperLogLog++](https://en.wikipedia.org/wiki/HyperLogLog) to estimate the result.
+"""
+
+nanuq """
+Nanuq has `nUnique` but not `approx_n_unique`, `value_counts` or `unique_counts` yet. The
+original compares the two counts on 100,000 random integers; here `nUnique` counts the
+names of the dataframe above:
 """
 
 tabs """
@@ -147,9 +175,6 @@ df.select(
     nbShow uniqueNames
 
 nbText: """
-The original page counts the unique values of 100,000 random integers here, and compares
-`n_unique` with the faster estimate `approx_n_unique`, which Nanuq does not have yet.
-
 ## Conditionals
 
 Polars supports something akin to a ternary operator through the function `when`, which is
@@ -160,15 +185,28 @@ replaced by the corresponding values of the expression inside the function `then
 values that evaluate to `False` are replaced by the corresponding values of the expression
 inside the function `otherwise` or `null`, if `otherwise` is not provided.
 
-In Nanuq the idiomatic way to write this is the `choose` macro, which takes a Nim
-`if`/`elif`/`else` and builds the same `when`/`then`/`otherwise` chain. The chain itself is
-also available: `when` is a Nim keyword, so as the first call of an expression it needs
-backticks, as in `` `when`(cond).then(a).otherwise(b) ``. Integer division, Python's `//`,
-is `div`.
-
 The example below applies one step of the
 [Collatz conjecture](https://en.wikipedia.org/wiki/Collatz_conjecture) to the numbers in
 the column “nrs”:
+"""
+
+nanuq """
+In Nanuq the idiomatic way to write this is the `choose` macro: it takes a Nim
+`if`/`elif`/`else` and builds the same `when`/`then`/`otherwise` chain. Two variants work
+too. `choose` with a one-line `if`, inline as in Python:
+
+```nim
+choose(if col("nrs") mod 2 == 1: 3 * col("nrs") + 1
+       else: col("nrs") div 2).alias("Collatz")
+```
+
+and the chain itself, where `when`, a Nim keyword, needs backticks as the first call:
+
+```nim
+`when`(col("nrs") mod 2 == 1).then(3 * col("nrs") + 1).otherwise(col("nrs") div 2)
+```
+
+Integer division, Python's `//`, is `div`.
 """
 
 tabs """
@@ -194,7 +232,11 @@ You can also emulate a chain of an arbitrary number of conditionals, akin to Pyt
 `elif` statement, by chaining an arbitrary number of consecutive blocks of
 `.when(...).then(...)`. In those cases, and for each given value, Polars will only consider
 a replacement expression that is deeper within the chain if the previous predicates all
-failed for that value. With `choose`, that is simply an `if` with more `elif` branches.
+failed for that value.
+"""
+
+nanuq """
+With `choose`, that is simply an `if` with more `elif` branches.
 """
 
 bookSave()

@@ -132,7 +132,8 @@ nbText: resultsTables()
 nbText: """
 ## Running it on your machine
 
-From the root of a clone of the book, with Nim, uv and git (the data goes to
+From the root of a clone of the book, with Nim (and nimble), uv and git (the script
+installs the book's dependencies first) (the data goes to
 `bench-data/`, which git ignores; scale factor 1 is about 1 GB of CSV):
 
 ```sh

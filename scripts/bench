@@ -7,7 +7,8 @@
 # `scripts/bench pdsh -d:benchScale=10`.
 # The chapter times the Nim and the Python queries, writes the timings and the
 # machine's specs to results/<benchmark>/<timestamp>[-label].json, commits that
-# file, and rebuilds its page. Needs Nim, uv and git; run it from the repository root.
+# file, and rebuilds its page. Needs Nim (with nimble), uv and git; run it from the
+# repository root. It installs the book's Nim and Python dependencies first.
 set -e
 cd "$(dirname "$0")/.."
 case "$1" in
@@ -16,5 +17,6 @@ case "$1" in
   *) echo "usage: scripts/bench 1brc|pdsh [nim options]" >&2; exit 2 ;;
 esac
 shift
+nimble install -y --depsOnly
 uv sync --locked --quiet
 exec uv run nim r -d:release -d:bench --hints:off "$@" "$chapter"

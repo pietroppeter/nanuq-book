@@ -1,0 +1,3 @@
+[submodule "nanuq"]
+	path = nanuq
+	url = https://github.com/pietroppeter/nanuq.git

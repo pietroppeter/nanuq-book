@@ -1,0 +1,9 @@
+[nimib]
+srcDir = "book"
+homeDir = "docs"
+
+[nimibook]
+language = "en"
+title = "The Nanuq Book"
+description = "Polars tutorials and examples, ported to Nanuq (Polars for Nim)"
+git_repository_url = "https://github.com/pietroppeter/nanuq-book"

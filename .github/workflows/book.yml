@@ -1,0 +1,85 @@
+name: Book
+
+# Builds the book on every push and pull request, deploys it to GitHub Pages from main,
+# and once a week (or on demand) builds it against Nanuq's main branch to catch API
+# changes early.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "0 6 * * 1"  # Mondays
+  workflow_dispatch:
+    inputs:
+      nanuq-main:
+        description: "Build against Nanuq's main branch instead of the pinned commit"
+        type: boolean
+        default: false
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04  # still ships libpcre3, which nimib's markdown renderer needs
+    env:
+      NANUQ_MAIN: ${{ github.event_name == 'schedule' || inputs.nanuq-main == true }}
+      LIB_DIR: nanuq/src/rust/target/release
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - name: Use Nanuq's main branch
+        if: env.NANUQ_MAIN == 'true'
+        run: git -C nanuq fetch --depth 1 origin main && git -C nanuq checkout FETCH_HEAD
+      - run: git -C nanuq log --oneline -1
+      # The Polars wrapper is the slow part (~10 minutes cold): cache the finished
+      # library by a hash of its sources, and reuse compiled dependencies on a miss.
+      - id: key
+        run: echo "key=nanuq-ffi-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('nanuq/src/rust/Cargo.toml', 'nanuq/src/rust/Cargo.lock', 'nanuq/src/rust/src/**') }}" >> "$GITHUB_OUTPUT"
+      - id: lib-cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.LIB_DIR }}/libnanuq_ffi.a
+          key: ${{ steps.key.outputs.key }}
+      - if: steps.lib-cache.outputs.cache-hit != 'true'
+        uses: dtolnay/rust-toolchain@stable
+      - if: steps.lib-cache.outputs.cache-hit != 'true'
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: nanuq/src/rust
+      - if: steps.lib-cache.outputs.cache-hit != 'true'
+        run: cargo build --release --manifest-path nanuq/src/rust/Cargo.toml
+      - uses: jiro4989/setup-nim-action@v2
+        with:
+          nim-version: "2.2.4"
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - run: sudo apt-get update && sudo apt-get install -y libpcre3
+      - run: nimble install -y --depsOnly
+      - run: nimble genbook
+      # nimibook writes a .log next to a chapter that failed to build
+      - name: Check that every chapter built
+        run: |
+          logs=$(find book -name '*.log')
+          if [ -n "$logs" ]; then
+            for f in $logs; do echo "::error file=${f%.log}.nim::chapter failed to build"; cat "$f"; done
+            exit 1
+          fi
+      - if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs
+
+  deploy:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    concurrency:
+      group: pages
+      cancel-in-progress: true
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

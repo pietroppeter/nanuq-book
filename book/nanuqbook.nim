@@ -4,7 +4,7 @@
 ## (Nim first), like the Rust/Python tabs of the Polars user guide. Both sides run when
 ## the book is built: the Nim blocks as usual, the Python code through nimpy in the uv
 ## environment of the repo (`uv run nimble genbook`).
-import std/[strutils, os, osproc, xmltree, json]
+import std/[strutils, os, osproc, xmltree, json, algorithm]
 import nimib, nimibook, nimpy, markdown
 import nimpy/py_lib as pyLib
 export nimib, nimibook
@@ -118,16 +118,27 @@ proc lastFrame(html: string): string =
   if start < 0: return ""
   html[start ..< stop + "</table>".len]
 
+proc sortedRows(frame: string): string =
+  ## The table with its body rows sorted, so that two frames with the same rows in a
+  ## different order compare equal (a `group_by` without `maintain_order` gives its
+  ## groups in any order).
+  let start = frame.find("<tbody>")
+  let stop = frame.rfind("</tbody>")
+  if start < 0 or stop < start: return frame
+  var rows = frame[start + "<tbody>".len ..< stop].split("</tr>")
+  rows.sort()
+  frame[0 ..< start] & rows.join("</tr>") & frame[stop .. ^1]
+
 proc checkSameFrame*(nimHtml, pythonShown, py: string) =
   ## Fails the build when the Python cell shows a DataFrame that differs from the
-  ## last one the Nim side shows.
+  ## last one the Nim side shows. Row order is not compared.
   let pyFrame = lastFrame(pythonShown)
   if pyFrame.len == 0: return
   let nimFrame = lastFrame(nimHtml)
   if nimFrame.len == 0:
     raise newException(ValueError, "the Python cell shows a DataFrame and the Nim tab " &
       "shows none:\n" & py)
-  if nimFrame != pyFrame:
+  if nimFrame != pyFrame and sortedRows(nimFrame) != sortedRows(pyFrame):
     raise newException(ValueError, "Nim and Python show different DataFrames for:\n" &
       py & "\n--- nim:\n" & nimFrame & "\n--- python:\n" & pyFrame)
 

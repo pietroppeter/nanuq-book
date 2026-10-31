@@ -1,5 +1,6 @@
 import nanuqbook
 nbInit(theme = useNimibook)
+bookStyle()
 
 nbText: """
 # The Nanuq Book
@@ -13,6 +14,32 @@ Every chapter runs. Each example comes in two tabs: **Nim**, computed by Nanuq, 
 once and every example follows. Nanuq wraps Rust Polars 0.55, while the Python side runs
 Python Polars 2.1, so small differences between the two outputs can happen.
 
+## Hello, world
+
+A DataFrame of greetings, and a query that keeps the languages with more than 100 million
+speakers (rough figures):
+"""
+
+tabs """
+import polars as pl
+
+greetings = pl.DataFrame({
+    "language": ["English", "Italian", "French"],
+    "hello": ["Hello, world!", "Ciao, mondo!", "Bonjour, le monde !"],
+    "speakers_millions": [1500, 68, 310],
+})
+greetings.filter(pl.col("speakers_millions") > 100)
+""":
+  nbCode:
+    import nanuq
+
+    let greetings = newDataFrame(
+      series("language", ["English", "Italian", "French"]),
+      series("hello", ["Hello, world!", "Ciao, mondo!", "Bonjour, le monde !"]),
+      series("speakers_millions", [1500, 68, 310]))
+  nbShow greetings.filter(col("speakers_millions") > 100)
+
+nbText: """
 ## Sources and licences
 
 Each ported chapter starts with a box that names its source, its authors and its licence,
@@ -21,7 +48,7 @@ and says what the port changed. The sources and their licences are listed in
 
 ## Which version of Nanuq
 
-Nanuq is young and its API still changes. The book is built against a pinned commit of
+Nanuq is young and its API still changes. The book is built against a pinned release of
 Nanuq, and is checked every week against Nanuq's main branch, so that changes that break a
 chapter show up early.
 """

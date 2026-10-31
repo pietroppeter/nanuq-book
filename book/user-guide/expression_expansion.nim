@@ -25,7 +25,9 @@ In this section we will show several forms of expression expansion and we will b
 dataframe that you can see below for that effect:
 """
 
-python """
+tabs """
+import polars as pl
+
 df = pl.DataFrame(
     {  # As of 14th October 2024, ~3pm UTC
         "ticker": ["AAPL", "NVDA", "MSFT", "GOOG", "AMZN"],
@@ -37,27 +39,28 @@ df = pl.DataFrame(
         "year_low": [164.08, 39.23, 324.39, 121.46, 118.35],
     }
 )
-"""
+df
+""":
+  nbCode:
+    import nanuq
 
-nbCode:
-  import nanuq
-  # As of 14th October 2024, ~3pm UTC
-  let df = newDataFrame(
-    series("ticker", ["AAPL", "NVDA", "MSFT", "GOOG", "AMZN"]),
-    series("company_name", ["Apple", "NVIDIA", "Microsoft", "Alphabet (Google)", "Amazon"]),
-    series("price", [229.9, 138.93, 420.56, 166.41, 188.4]),
-    series("day_high", [231.31, 139.6, 424.04, 167.62, 189.83]),
-    series("day_low", [228.6, 136.3, 417.52, 164.78, 188.44]),
-    series("year_high", [237.23, 140.76, 468.35, 193.31, 201.2]),
-    series("year_low", [164.08, 39.23, 324.39, 121.46, 118.35]))
-nbShow df
+    # As of 14th October 2024, ~3pm UTC
+    let df = newDataFrame(
+      series("ticker", ["AAPL", "NVDA", "MSFT", "GOOG", "AMZN"]),
+      series("company_name", ["Apple", "NVIDIA", "Microsoft", "Alphabet (Google)", "Amazon"]),
+      series("price", [229.9, 138.93, 420.56, 166.41, 188.4]),
+      series("day_high", [231.31, 139.6, 424.04, 167.62, 189.83]),
+      series("day_low", [228.6, 136.3, 417.52, 164.78, 188.44]),
+      series("year_high", [237.23, 140.76, 468.35, 193.31, 201.2]),
+      series("year_low", [164.08, 39.23, 324.39, 121.46, 118.35]))
+  nbShow df
 
 nbText: """
 ## Function `col`
 
 The function `col` is the most common way of making use of expression expansion features
 in Polars. Typically used to refer to one column of a dataframe, in this section we explore
-other ways in which you can use `col` (or its variants, when in Rust).
+other ways in which you can use `col`.
 
 ### Explicit expansion by column name
 
@@ -68,18 +71,29 @@ The example below uses a single function `col` with multiple column names to con
 values in USD to EUR:
 """
 
-python """
+tabs """
 eur_usd_rate = 1.09  # As of 14th October 2024
-result = df.with_columns(
-    (pl.col("price", "day_high", "day_low", "year_high", "year_low") / eur_usd_rate).round(2)
-)
-"""
 
-nbCode:
-  const eurUsdRate = 1.09  # As of 14th October 2024
-  let result = df.withColumns(
-    (col("price", "day_high", "day_low", "year_high", "year_low") / eurUsdRate).round(2))
-nbShow result
+result = df.with_columns(
+    (
+        pl.col(
+            "price",
+            "day_high",
+            "day_low",
+            "year_high",
+            "year_low",
+        )
+        / eur_usd_rate
+    ).round(2)
+)
+result
+""":
+  nbCode:
+    const eurUsdRate = 1.09  # As of 14th October 2024
+
+    let result = df.withColumns(
+      (col("price", "day_high", "day_low", "year_high", "year_low") / eurUsdRate).round(2))
+  nbShow result
 
 nbText: """
 When you list the column names you want the expression to expand to, you can predict what
@@ -87,20 +101,33 @@ the expression will expand to. In this case, the expression that does the curren
 conversion is expanded to a list of five expressions:
 """
 
-nbCode:
-  let exprs = [
-    (col("price") / eurUsdRate).round(2),
-    (col("day_high") / eurUsdRate).round(2),
-    (col("day_low") / eurUsdRate).round(2),
-    (col("year_high") / eurUsdRate).round(2),
-    (col("year_low") / eurUsdRate).round(2),
-  ]
-  let result2 = df.withColumns(exprs)
-  echo $result == $result2
+tabs """
+exprs = [
+    (pl.col("price") / eur_usd_rate).round(2),
+    (pl.col("day_high") / eur_usd_rate).round(2),
+    (pl.col("day_low") / eur_usd_rate).round(2),
+    (pl.col("year_high") / eur_usd_rate).round(2),
+    (pl.col("year_low") / eur_usd_rate).round(2),
+]
+
+result2 = df.with_columns(exprs)
+print(result.equals(result2))
+""":
+  nbCode:
+    let exprs = [
+      (col("price") / eurUsdRate).round(2),
+      (col("day_high") / eurUsdRate).round(2),
+      (col("day_low") / eurUsdRate).round(2),
+      (col("year_high") / eurUsdRate).round(2),
+      (col("year_low") / eurUsdRate).round(2),
+    ]
+
+    let result2 = df.withColumns(exprs)
+    echo $result == $result2
 
 nbText: """
-The original compares the two frames with `DataFrame.equals`, which Nanuq does not have
-yet, so here we compare them as text.
+Nanuq does not have `DataFrame.equals` yet, so the Nim version compares the two frames as
+text.
 
 ### Expansion by data type
 
@@ -113,13 +140,13 @@ In Nanuq you give the data type as a Nim type: `float` is Polars' `Float64`, `in
 before:
 """
 
-python """
+tabs """
 result = df.with_columns((pl.col(pl.Float64) / eur_usd_rate).round(2))
-"""
-
-nbCode:
-  let byType = df.withColumns((col(float) / eurUsdRate).round(2))
-  echo $byType == $result
+result
+""":
+  nbCode:
+    let byType = df.withColumns((col(float) / eurUsdRate).round(2))
+  nbShow byType
 
 nbText: """
 When we use a data type with expression expansion we cannot know, beforehand, how many
@@ -127,18 +154,26 @@ columns a single expression will expand to. We need the schema of the input data
 we want to determine what is the final list of expressions that is to be applied.
 
 If we weren't sure about whether the price columns were of the type `Float64` or `Float32`,
-we could specify both data types. Where Python lists `pl.Float32, pl.Float64`, Nim can
-also name the whole family at once with the typeclass `SomeFloat`:
+we could specify both data types. Nim can also name the whole family at once with the
+typeclass `SomeFloat`:
 """
 
-python """
-result2 = df.with_columns((pl.col(pl.Float32, pl.Float64) / eur_usd_rate).round(2))
-"""
-
-nbCode:
-  let byTypes = df.withColumns((col(float32, float) / eurUsdRate).round(2))
-  let byClass = df.withColumns((col(SomeFloat) / eurUsdRate).round(2))
-  echo $byTypes == $result, " ", $byClass == $result
+tabs """
+result2 = df.with_columns(
+    (
+        pl.col(
+            pl.Float32,
+            pl.Float64,
+        )
+        / eur_usd_rate
+    ).round(2)
+)
+print(result.equals(result2))
+""":
+  nbCode:
+    let byTypes = df.withColumns((col(float32, float) / eurUsdRate).round(2))
+    let byClass = df.withColumns((col(SomeFloat) / eurUsdRate).round(2))
+    echo $byTypes == $byType, " ", $byClass == $byType
 
 nbText: """
 ### Expansion by pattern matching
@@ -151,20 +186,29 @@ pattern must match against the whole column name string.
 Regular expressions can be mixed with regular column names:
 """
 
-python """
+tabs """
 result = df.select(pl.col("ticker", "^.*_high$", "^.*_low$"))
-"""
-
-nbCode:
-  let highsAndLows = df.select(col("ticker", "^.*_high$", "^.*_low$"))
-nbShow highsAndLows
+result
+""":
+  nbCode:
+    let highsAndLows = df.select(col("ticker", "^.*_high$", "^.*_low$"))
+  nbShow highsAndLows
 
 nbText: """
 ### Arguments cannot be of mixed types
 
-In Python, `col` raises a `TypeError` at run time when you mix column names and data types,
-as in `pl.col("ticker", pl.Float64)`. In Nanuq that call does not compile: `col` takes
-either names or types.
+In Python, `col` raises a `TypeError` at run time when you mix column names and data types:
+"""
+
+python """
+try:
+    df.select(pl.col("ticker", pl.Float64))
+except TypeError as err:
+    print("TypeError:", err)
+"""
+
+nbText: """
+In Nanuq that call does not compile: `col` takes either names or types.
 
 ## Selecting all columns
 
@@ -172,13 +216,12 @@ Polars provides the function `all` as shorthand notation to refer to all columns
 dataframe:
 """
 
-python """
+tabs """
 result = df.select(pl.all())
 print(result.equals(df))
-"""
-
-nbCode:
-  echo $df.select(all()) == $df
+""":
+  nbCode:
+    echo $df.select(all()) == $df
 
 nbText: """
 ## Excluding columns
@@ -188,19 +231,23 @@ that, you use the function `exclude`, which accepts exactly the same types of ar
 `col`:
 """
 
-python """
+tabs """
 result = df.select(pl.all().exclude("^day_.*$"))
-"""
-
-nbCode:
-  let noDay = df.select(all().exclude("^day_.*$"))
-nbShow noDay
+result
+""":
+  nbCode:
+    let noDay = df.select(all().exclude("^day_.*$"))
+  nbShow noDay
 
 nbText: "Naturally, the function `exclude` can also be used after the function `col`:"
 
-nbCode:
-  let floatsNoDay = df.select(col(float).exclude("^day_.*$"))
-nbShow floatsNoDay
+tabs """
+result = df.select(pl.col(pl.Float64).exclude("^day_.*$"))
+result
+""":
+  nbCode:
+    let floatsNoDay = df.select(col(float).exclude("^day_.*$"))
+  nbShow floatsNoDay
 
 nbText: """
 ## Column renaming
@@ -212,8 +259,11 @@ Preserving the column name can be semantically wrong and in certain cases Polars
 raise an error if duplicate names occur:
 """
 
-python """
+tabs """
+from polars.exceptions import DuplicateError
+
 gbp_usd_rate = 1.31  # As of 14th October 2024
+
 try:
     df.select(
         pl.col("price") / gbp_usd_rate,  # This would be named "price"...
@@ -221,18 +271,19 @@ try:
     )
 except DuplicateError as err:
     print("DuplicateError:", err)
-"""
+""":
+  nbCode:
+    import std/strutils
 
-nbCode:
-  import std/strutils
-  const gbpUsdRate = 1.31  # As of 14th October 2024
-  try:
-    discard df.select(
-      col("price") / gbpUsdRate,  # This would be named "price"...
-      col("price") / eurUsdRate,  # And so would this.
-    )
-  except NanuqError as err:
-    echo "NanuqError: ", err.msg.splitLines[0]
+    const gbpUsdRate = 1.31  # As of 14th October 2024
+
+    try:
+      discard df.select(
+        col("price") / gbpUsdRate,  # This would be named "price"...
+        col("price") / eurUsdRate,  # And so would this.
+      )
+    except NanuqError as err:
+      echo "NanuqError: ", err.msg.splitLines[0]
 
 nbText: """
 Polars' errors arrive in Nanuq as `NanuqError`, with Polars' message.
@@ -247,11 +298,18 @@ The function `alias` has been used thoroughly in the documentation already and i
 rename a single column:
 """
 
-nbCode:
-  let prices = df.select(
-    (col("price") / gbpUsdRate).alias("price (GBP)"),
-    (col("price") / eurUsdRate).alias("price (EUR)"))
-nbShow prices
+tabs """
+result = df.select(
+    (pl.col("price") / gbp_usd_rate).alias("price (GBP)"),
+    (pl.col("price") / eur_usd_rate).alias("price (EUR)"),
+)
+result
+""":
+  nbCode:
+    let prices = df.select(
+      (col("price") / gbpUsdRate).alias("price (GBP)"),
+      (col("price") / eurUsdRate).alias("price (EUR)"))
+  nbShow prices
 
 nbText: """
 ### Prefixing and suffixing column names
@@ -263,25 +321,34 @@ When it suffices to add a static prefix or a static suffix to the existing names
 the functions `prefix` and `suffix` from the namespace `name`:
 """
 
-python """
+tabs """
 result = df.select(
     (pl.col("^year_.*$") / eur_usd_rate).name.prefix("in_eur_"),
     (pl.col("day_high", "day_low") / gbp_usd_rate).name.suffix("_gbp"),
 )
-"""
-
-nbCode:
-  let renamed = df.select(
-    (col("^year_.*$") / eurUsdRate).name.prefix("in_eur_"),
-    (col("day_high", "day_low") / gbpUsdRate).name.suffix("_gbp"))
-nbShow renamed
+result
+""":
+  nbCode:
+    let renamed = df.select(
+      (col("^year_.*$") / eurUsdRate).name.prefix("in_eur_"),
+      (col("day_high", "day_low") / gbpUsdRate).name.suffix("_gbp"))
+  nbShow renamed
 
 nbText: """
 ### Dynamic name replacement
 
-If a static prefix/suffix is not enough, Python Polars uses `name.map` with a function that
-computes the new name, such as `pl.all().name.map(str.upper)`. Nanuq can't call Nim code
-from inside a Polars query yet, so this one is not ported.
+If a static prefix/suffix is not enough, you can also use `name.map`. This function
+accepts a callable that accepts the old column names and produces the new ones:
+"""
+
+python """
+# There is also `name.to_uppercase`, so this usage of `.map` is moot.
+result = df.select(pl.all().name.map(str.upper))
+result
+"""
+
+nbText: """
+Nanuq can't call Nim code from inside a Polars query yet, so this one has no Nim version.
 
 ## Programmatically generating expressions
 
@@ -292,35 +359,44 @@ in our dataframe, expression expansion won't help us.
 At first, you may think about using a `for` loop:
 """
 
-nbCode:
-  var amplitudes = df
-  for tp in ["day", "year"]:
-    amplitudes = amplitudes.withColumns(
-      (col(tp & "_high") - col(tp & "_low")).alias(tp & "_amplitude"))
-nbShow amplitudes
+tabs """
+result = df
+for tp in ["day", "year"]:
+    result = result.with_columns(
+        (pl.col(f"{tp}_high") - pl.col(f"{tp}_low")).alias(f"{tp}_amplitude")
+    )
+result
+""":
+  nbCode:
+    var amplitudes = df
+    for tp in ["day", "year"]:
+      amplitudes = amplitudes.withColumns(
+        (col(tp & "_high") - col(tp & "_low")).alias(tp & "_amplitude"))
+  nbShow amplitudes
 
 nbText: """
 Do not do this. Instead, generate all of the expressions you want to compute
 programmatically and use them only once in a context. Loosely speaking, you want to swap the
-`for` loop with the context `withColumns`. In Python that is a generator; in Nim, a proc
-that returns the expressions, or an iterator collected into a `seq`, does the same:
+`for` loop with the context `with_columns`. In Python that is a generator; in Nim, a proc
+that returns the expressions does the same:
 """
 
-python """
+tabs """
 def amplitude_expressions(time_periods):
     for tp in time_periods:
         yield (pl.col(f"{tp}_high") - pl.col(f"{tp}_low")).alias(f"{tp}_amplitude")
 
+
 result = df.with_columns(amplitude_expressions(["day", "year"]))
-"""
+result
+""":
+  nbCode:
+    proc amplitudeExpressions(timePeriods: openArray[string]): seq[Expr] =
+      for tp in timePeriods:
+        result.add (col(tp & "_high") - col(tp & "_low")).alias(tp & "_amplitude")
 
-nbCode:
-  proc amplitudeExpressions(timePeriods: openArray[string]): seq[Expr] =
-    for tp in timePeriods:
-      result.add (col(tp & "_high") - col(tp & "_low")).alias(tp & "_amplitude")
-
-  let withAmplitudes = df.withColumns(amplitudeExpressions(["day", "year"]))
-  echo $withAmplitudes == $amplitudes
+    let withAmplitudes = df.withColumns(amplitudeExpressions(["day", "year"]))
+  nbShow withAmplitudes
 
 nbText: """
 This produces the same final result and by specifying all of the expressions in one go we
@@ -329,12 +405,22 @@ give Polars the opportunity to:
 1. do a better job at optimising the query; and
 2. parallelise the execution of the actual computations.
 
-## Not ported yet
+## More flexible column selections
 
-- **More flexible column selection** with the `polars.selectors` module (`cs.string()`,
-  `cs.ends_with("_high")`, ...) and its set operations (`|`, `&`, `-`, `~`). Nanuq's `col`
-  covers selection by name, regex, Nim type and type family, plus `exclude`.
-- **`name.map`** and the other name functions that take a callback.
+Python Polars also has the submodule `selectors`, with many functions for column selection
+that can be combined with set operations (`|`, `&`, `-`, `~`):
+"""
+
+python """
+import polars.selectors as cs
+
+result = df.select(cs.string() | cs.ends_with("_high"))
+result
+"""
+
+nbText: """
+Nanuq does not have selectors as a separate module yet. Its `col` covers selection by
+name, regular expression, Nim type and type family, plus `exclude`.
 """
 
 nbSave

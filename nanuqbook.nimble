@@ -10,12 +10,13 @@ license       = "MIT"  # original content only; each chapter states the licence 
 requires "nim >= 2.0.0"
 requires "nimib >= 0.4.3"
 requires "nimibook >= 0.4.0"
+requires "nimpy >= 0.2.1"  # runs the Python side of the tabs
 # nanuq is not a nimble dependency: it is the git submodule in nanuq/, pinned to a
 # commit, and config.nims puts nanuq/src on the path.
 
 # Tasks
 
-task genbook, "Build the book into docs/":
+task genbook, "Build the book into docs/ (run it with `uv run nimble genbook`, for the Python side)":
   exec "nim r -d:release --hints:off nbook.nim init"
   # chapters run from docs/ and read data from data/ there, which is also where
   # readers of the site can download it

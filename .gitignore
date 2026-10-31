@@ -6,3 +6,5 @@ nbook
 nbook.exe
 book.json
 nimcache/
+.venv/
+__pycache__/

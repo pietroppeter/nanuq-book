@@ -30,20 +30,28 @@ git add nanuq && git commit -m "Pin Nanuq to <commit>"
 
 ## Building
 
-Needs Nim 2.x, Rust (Nanuq's development versions build the Polars wrapper from source,
-which takes about 10 minutes the first time) and libpcre (for nimib's markdown).
+Needs Nim 2.x, [uv](https://docs.astral.sh/uv/), Rust (Nanuq's development versions build
+the Polars wrapper from source, which takes about 10 minutes the first time) and libpcre
+(for nimib's markdown).
 
 ```sh
 git clone --recurse-submodules https://github.com/pietroppeter/nanuq-book
 cd nanuq-book
 nimble install -y --depsOnly
-nimble genbook        # writes the site to docs/
+uv sync                    # Python Polars, for the Python side of each example
+uv run nimble genbook      # writes the site to docs/
 ```
+
+Each example is shown in two tabs, Nim first and then the original Python, and both run
+when the book is built: the Python code runs through [nimpy](https://github.com/yglukhov/nimpy)
+with the Python Polars version pinned in `pyproject.toml`. A Python cell that ends with an
+expression shows its value, as in a notebook.
 
 ## Adding a chapter
 
 1. Check the source's licence (see above).
-2. Write `book/<source>/<page>.nim`: start with `attribution` (see `book/nanuqbook.nim`),
-   show the original Python with `python` where it helps, and port the code with `nbCode`.
-   Say which sections were left out and why.
+2. Write `book/<source>/<page>.nim` (Nim module names can't contain `-`): start with
+   `attribution` (see `book/nanuqbook.nim`), and give each example as
+   `tabs "<python code>": <nbCode and nbShow blocks>`. Python with no Nim version yet goes
+   in `python "<code>"`. Say which sections were left out and why.
 3. Add the chapter to `nbook.nim`, and the source to `book/licences.nim` and `licenses/`.

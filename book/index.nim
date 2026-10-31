@@ -8,9 +8,10 @@ nbText: """
 to Nim. This book takes public Polars tutorials and examples and ports them to Nanuq, one
 chapter at a time.
 
-Every chapter runs: the book is built by executing each chapter's Nim code, so every
-table you see was computed by Nanuq. Where it helps, the original Python is shown before
-its Nim version, so you can compare the two APIs.
+Every chapter runs. Each example comes in two tabs: **Nim**, computed by Nanuq, and
+**Python**, the original code run with Python Polars when the book is built. Pick a tab
+once and every example follows. Nanuq wraps Rust Polars 0.55, while the Python side runs
+Python Polars 2.1, so small differences between the two outputs can happen.
 
 ## Sources and licences
 

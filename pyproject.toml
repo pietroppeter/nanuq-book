@@ -1,0 +1,11 @@
+[project]
+name = "nanuq-book"
+version = "0.1.0"
+description = "Python side of the Nanuq book: runs the original Polars code shown next to each Nim port"
+requires-python = ">=3.12"
+dependencies = [
+    "polars==2.1.0",
+]
+
+[tool.uv]
+package = false

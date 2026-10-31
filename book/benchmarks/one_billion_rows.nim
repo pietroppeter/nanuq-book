@@ -28,8 +28,8 @@ Hamburg;34.2
 
 Compute the minimum, mean and maximum temperature of each station, sorted by station, as
 fast as possible. The challenge was for Java, but the answer in Polars is a single lazy
-query, and it is one of the best-known Polars examples. Nanuq runs the same engine, so it
-should be as fast as Python Polars.
+query, and it is one of the best-known Polars examples. Nanuq runs the same engine, so the
+timings below show how close it gets to Python Polars.
 
 ## The query
 

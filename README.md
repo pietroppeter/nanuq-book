@@ -55,8 +55,24 @@ Each example is shown in two tabs, Nim first and then the original Python, and b
 when the book is built: the Python code runs through [nimpy](https://github.com/yglukhov/nimpy)
 with the Python Polars version pinned in `pyproject.toml`. A Python cell that ends with an
 expression shows its value, as in a notebook. When it shows a DataFrame, the build
-checks that the Nim tab shows the same table (its last one, compared as HTML) and fails
-if they differ.
+checks that the Nim tab shows the same table (its last one, compared as HTML, rows in
+any order) and fails if they differ.
+
+## Benchmarks
+
+Benchmark chapters (in `book/benchmarks/`) build in two ways. The normal build, and CI,
+run their queries on a small sample only (to check Nim against Python) and show every
+result file in `results/<benchmark>/`. A full run happens only on your machine:
+
+```sh
+scripts/bench 1brc                                              # one billion rows
+scripts/bench 1brc -d:benchRows=100000000 -d:benchLabel=my-mac  # fewer rows, named machine
+```
+
+It builds the chapter with `-d:bench`, which generates the data in `bench-data/` (ignored
+by git), times the Nim and Python queries, writes a timestamped JSON file with the
+timings, the machine's specs and the versions to `results/<benchmark>/`, and commits it.
+The queries themselves live in `bench/`, one Nim module and one Python module each.
 
 The look follows the Nanuq dev log (its palette, fonts and code cells) on top of
 nimibook's layout; the styles and script are in `theme/`, and every Nim page ends with a

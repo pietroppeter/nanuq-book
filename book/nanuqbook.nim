@@ -172,6 +172,7 @@ body { font-size: 1.7rem; line-height: 1.65; }  /* nimibook sets html to 62.5% *
 .chapter li a, .chapter li.chapter-item { line-height: 1.4; }
 .chapter li a.active { font-weight: 700; }
 .menu-bar { border-bottom-color: var(--rule) !important; }
+#theme-list { display: none !important; }
 .menu-title { font: 700 2rem/1 var(--display); letter-spacing: -.01em; }
 .content main { line-height: 1.65; }
 .content h1, .content h2, .content h3, .content h4 { font-family: var(--display); line-height: 1.15;
@@ -274,7 +275,32 @@ details.nq-source .nq-source-link { font: 1.2rem/1.4 var(--mono); color: var(--m
     var b = e.target.closest && e.target.closest(".nq-tab");
     if (b) choose(b.dataset.lang);
   });
+  // nimibook's theme menu becomes a one-click light/dark switch. Capturing the click
+  // here keeps book.js from opening the menu; the menu's hidden Light/Dark buttons
+  // still apply and remember the theme.
+  function isDark() {
+    var c = document.documentElement.classList;
+    return c.contains("navy") || c.contains("coal") || c.contains("ayu");
+  }
+  function updateSwitch() {
+    var b = document.getElementById("theme-toggle");
+    if (!b) return;
+    var dark = isDark(), label = dark ? "Switch to light theme" : "Switch to dark theme";
+    b.title = label; b.setAttribute("aria-label", label);
+    b.removeAttribute("aria-haspopup"); b.removeAttribute("aria-expanded");
+    var i = b.querySelector("i");
+    if (i) i.className = "fa " + (dark ? "fa-sun-o" : "fa-moon-o");
+  }
+  document.addEventListener("click", function (e) {
+    var b = e.target.closest && e.target.closest("#theme-toggle");
+    if (!b) return;
+    e.preventDefault(); e.stopPropagation();
+    var next = document.getElementById(isDark() ? "light" : "navy");
+    if (next) next.click();
+    updateSwitch();
+  }, true);
   document.addEventListener("DOMContentLoaded", function () {
+    updateSwitch();
     var lang = null;
     try { lang = localStorage.getItem("nanuq-book-lang"); } catch (e) {}
     if (lang) choose(lang);
@@ -291,6 +317,8 @@ proc useNanuqBook*(nb: var Nb) =
   ## nimibook, restyled like the Nanuq dev log.
   nb.useNimibook
   nb.backend.partials["head"] = bookHeadPartial
+  # the book's two looks; the theme menu is turned into a light/dark switch (bookHead)
+  nb.doc.context["theme_option"] = %*{"light": "Light", "navy": "Dark"}
   # Nim cells come highlighted from nimib; skip nimib's highlight.js
   nb.doc.context["disableHighlightJs"] = %true
 

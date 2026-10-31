@@ -1,0 +1,10 @@
+[nimib]
+srcDir = "book"
+homeDir = "docs"
+
+[nimibook]
+language = "en"
+title = "The Nanuq Book"
+description = "Polars tutorials and examples, ported to Nanuq (Polars for Nim)"
+git_repository_url = "https://github.com/pietroppeter/nanuq-book"
+favicon_escaped = '<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2280%22>🐻‍❄️</text></svg>">'

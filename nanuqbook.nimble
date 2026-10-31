@@ -18,7 +18,7 @@ requires "nimpy >= 0.2.1"  # runs the Python side of the tabs
 
 import std/strutils
 
-task genbook, "Build the book into docs/ (run it with `uv run nimble genbook`, for the Python side)":
+task genbook, "Build the book into docs/, rerunning only changed chapters (run it with `uv run nimble genbook`, for the Python side)":
   # Fetch Nanuq's prebuilt library once, up front: nimibook compiles the chapters in
   # parallel, and on a cold cache each would download and unpack it at the same time
   # (one chapter could then link a half-written library).
@@ -40,7 +40,11 @@ task genbook, "Build the book into docs/ (run it with `uv run nimble genbook`, f
   # chapters run from docs/ and read data from data/ there, which is also where
   # readers of the site can download it
   cpDir "data", "docs/data"
-  exec "nim r -d:release --hints:off nbook.nim build"
+  # Chapters run only when something they depend on changed; then every page is
+  # rendered from the chapters' JSON (see bookbuild.nim). BOOK_FORCE=1 reruns them all;
+  # BOOK_FROM=<url of the published book> starts from the JSON that is live.
+  exec "nim r -d:release --hints:off nbook.nim dump"
+  exec "nim r -d:release --hints:off --nimcache:nimcache/bookbuild bookbuild.nim"
 
 task cleanbook, "Remove the files created by genbook":
   exec "nim r -d:release --hints:off nbook.nim clean"

@@ -6,6 +6,8 @@ name: Book
 # -d:nanuqLib=prebuilt, so the build fails unless Nanuq's lib version is released
 # (lib-v<version> on GitHub). The weekly build against main fails while main is on a
 # -dev lib version.
+# Builds are incremental: a chapter reruns only when a file it depends on changed (its
+# record is in its JSON on the live site); see bookbuild.nim.
 on:
   push:
     branches: [main]
@@ -33,6 +35,10 @@ on:
         description: "Build against Nanuq's main branch instead of the pinned commit"
         type: boolean
         default: false
+      force:
+        description: "Rerun every chapter, even the ones whose inputs did not change"
+        type: boolean
+        default: false
 
 # A new push to a pull request cancels the run of the previous one; main runs one at a time.
 concurrency:
@@ -56,8 +62,9 @@ jobs:
         with:
           nim-version: "2.2.4"
           repo-token: ${{ secrets.GITHUB_TOKEN }}
-      # the runner's package index usually has libpcre3 already; refresh it only if not
-      - run: sudo apt-get install -y --no-install-recommends libpcre3 || (sudo apt-get update && sudo apt-get install -y --no-install-recommends libpcre3)
+      # libpcre3 for nimib; strace for bookbuild.nim, which records the files each chapter
+      # reads. The runner's package index usually has both; refresh it only if not.
+      - run: sudo apt-get install -y --no-install-recommends libpcre3 strace || (sudo apt-get update && sudo apt-get install -y --no-install-recommends libpcre3 strace)
       # Nim packages: restored from the cache when nanuqbook.nimble is unchanged
       - uses: actions/cache@v4
         with:
@@ -73,7 +80,13 @@ jobs:
       # The Python side of the tabs runs the original Polars code (pyproject.toml, uv.lock)
       - uses: astral-sh/setup-uv@v6
       - run: uv sync --locked
+      # Starts from the chapter JSON of the live book and reruns only the chapters whose
+      # inputs changed (bookbuild.nim); every page is then rendered from the JSON.
+      # A manual run can rerun them all.
       - run: uv run nimble genbook
+        env:
+          BOOK_FROM: https://pietroppeter.github.io/nanuq-book
+          BOOK_FORCE: ${{ inputs.force == true }}
       # nimibook writes a .log next to a chapter that failed to build
       - name: Check that every chapter built
         run: |

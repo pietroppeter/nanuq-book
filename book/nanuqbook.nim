@@ -211,5 +211,9 @@ proc sourceHtml(nb: Nb): string =
 
 template bookSave* =
   ## Ends a chapter: a "Show source" button with the page's own source, then `nbSave`.
+  ## The document is also saved as JSON next to the page (nimib's JSON backend):
+  ## bookbuild.nim renders the book from these files, and adds to each a record of
+  ## what the chapter depends on, to rerun it only when that changes.
   nbRawHtml: sourceHtml(nb)
   nbSave
+  writeFile(nb.doc.filename.changeFileExt("json"), nb.doc.dump())

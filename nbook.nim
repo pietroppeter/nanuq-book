@@ -18,6 +18,7 @@ var book = initBookWithToc:
     entry("Joining and concatenating", "joining_and_concatenating")
   section("Polars Cookbook", "polars-cookbook/index.md"):
     entry("Getting started", "getting_started")
+    entry("Debugging chained operations", "debugging_chains")
   section("Benchmarks", "benchmarks/index.md"):
     entry("One Billion Row Challenge", "one_billion_rows")
     entry("PDS-H queries", "pds_h")

@@ -59,7 +59,7 @@ checks that the Nim tab shows the same table (its last one, compared as HTML) an
 if they differ.
 
 The look follows the Nanuq dev log (its palette, fonts and code cells) on top of
-nimibook's layout; the theme is in `book/nanuqbook.nim`, and every page ends with a
+nimibook's layout; the styles and script are in `theme/`, and every Nim page ends with a
 "Show source" button.
 
 ## Adding a chapter
@@ -70,4 +70,8 @@ nimibook's layout; the theme is in `book/nanuqbook.nim`, and every page ends wit
    `bookSave()` (it adds the "Show source" button), and give each example as
    `tabs "<python code>": <nbCode blocks>`, with `nbShow` inside the `nbCode` so readers
    see it. Python with no Nim version yet goes in `python "<code>"`. Say which sections were left out and why.
-3. Add the chapter to `nbook.nim`, and the source to `book/licences.nim` and `licenses/`.
+3. Add the chapter to `nbook.nim`, and the source to `book/licences.md` and `licenses/`.
+
+Pages that run no code (section intros, the licences page) are plain Markdown (`.md`),
+which nimibook renders as they are. The look and the tabs/theme script live in `theme/`
+and are added to nimibook's assets by `nimble genbook`, so they apply to every page.

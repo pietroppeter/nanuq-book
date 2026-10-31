@@ -1,7 +1,3 @@
-import nanuqbook
-bookInit()
-
-nbText: """
 # Sources and licences
 
 The book's own text and code are licensed under the [MIT licence](https://github.com/pietroppeter/nanuq-book/blob/main/LICENSE).
@@ -20,6 +16,3 @@ folder, one subfolder per source, under the licence of that source.
 The book is built with [nimibook](https://github.com/pietroppeter/nimibook), whose theme
 and assets have their own licences (MPL-2.0 theme, fonts under Apache 2.0 and SIL OFL 1.1,
 highlight.js under BSD-3-Clause, clipboard.js and KaTeX under MIT).
-"""
-
-bookSave()

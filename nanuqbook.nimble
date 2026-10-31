@@ -44,7 +44,7 @@ task genbook, "Build the book into docs/, rerunning only changed chapters (run i
   # rendered from the chapters' JSON (see bookbuild.nim). BOOK_FORCE=1 reruns them all;
   # BOOK_FROM=<url of the published book> starts from the JSON that is live.
   exec "nim r -d:release --hints:off nbook.nim dump"
-  exec "nim r -d:release --hints:off --nimcache:nimcache/bookbuild bookbuild.nim"
+  exec "nim r --hints:off --nimcache:nimcache/bookbuild bookbuild.nim"
 
 task cleanbook, "Remove the files created by genbook":
   exec "nim r -d:release --hints:off nbook.nim clean"

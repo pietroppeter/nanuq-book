@@ -191,7 +191,7 @@ proc renderChapter(path, jsonPath: string) =
 proc main =
   var force = getEnv("BOOK_FORCE") in ["1", "true"]
   var fromUrl = getEnv("BOOK_FROM").strip(chars = {'/'}, leading = false)
-  var jobs = countProcessors()
+  var jobs = 10  # as nimibook: Nim's front end is single-threaded, so more jobs than cores helps
   for kind, key, val in getopt():
     case key
     of "force": force = true
@@ -232,8 +232,10 @@ proc main =
     discard tryRemoveFile("book" / c.path.changeFileExt("log"))
     createDir c.cacheDir
     # -d:nimBetterRun: Nim then lists the files it compiled, with hashes, in
-    # <nimcache>/chapter.json (`depfiles`), as it does for `nim r`
-    compiles.add (c.path, "nim c -d:release -d:nimBetterRun --hints:off --nimcache:" & quoteShell(c.cacheDir) &
+    # <nimcache>/chapter.json (`depfiles`), as it does for `nim r`. No -d:release, as
+    # with nimibook's build: chapters run small examples, and a release build of the C
+    # code costs about 4 times the CPU.
+    compiles.add (c.path, "nim c -d:nimBetterRun --hints:off --nimcache:" & quoteShell(c.cacheDir) &
                           " -o:" & quoteShell(c.exe) & " " & quoteShell("book" / c.path))
   let compiled = runAll(compiles, jobs, "nimcache/logs")
   var runs: seq[tuple[name, cmd: string]]

@@ -10,8 +10,8 @@ chapter at a time.
 
 Every chapter runs. Each example comes in two tabs: **Nim**, computed by Nanuq, and
 **Python**, the original code run with Python Polars when the book is built. Pick a tab
-once and every example follows. Nanuq wraps Rust Polars 0.55, while the Python side runs
-Python Polars 2.1, so small differences between the two outputs can happen.
+once and every example follows. Nanuq wraps the same Polars code as Python Polars 2.1, the
+version the Python side runs, so the two tabs show the same results.
 
 ## Hello, world
 

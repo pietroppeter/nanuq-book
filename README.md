@@ -58,6 +58,15 @@ expression shows its value, as in a notebook. When it shows a DataFrame, the bui
 checks that the Nim tab shows the same table (its last one, compared as HTML, rows in
 any order) and fails if they differ.
 
+The build is incremental (`bookbuild.nim`). Each chapter saves its nimib document as JSON
+next to its page (`docs/<chapter>.json`, nimib's JSON backend), with a record of every file
+it depended on and its hash: what it compiled (Nim's own list) and, on Linux, what it read
+while running (traced with `strace`; on macOS the previous record's list is kept). A
+chapter reruns only when one of those files changed; then every page is rendered from the
+JSON, so a new chapter or a theme change reruns nothing. `BOOK_FORCE=1 uv run nimble
+genbook` reruns every chapter. CI starts from the JSON of the published book
+(`BOOK_FROM`), so a pull request reruns only the chapters it affects.
+
 ## Benchmarks
 
 Benchmark chapters (in `book/benchmarks/`) build in two ways. The normal build, and CI,

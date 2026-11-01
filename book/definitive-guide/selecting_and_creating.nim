@@ -49,8 +49,7 @@ rebels[:, 11:]
 
 nanuq """
 Nanuq has no `df[rows, columns]` indexing: columns are picked by name with `select`.
-The list columns, `vehicles` and `starships`, come through and print, but Nanuq has no
-functions for lists yet.
+The list columns, `vehicles` and `starships`, are `List(String)` columns.
 """
 
 nbText: """
@@ -162,9 +161,14 @@ rebels.select(cs.temporal())
 
 nanuq """
 `cs.temporal()` is every date, time, datetime and duration column; in Nim you name the
-types, `col(Date, Duration)`, with the `Duration` of `std/times`. The book also selects
-the list columns with `cs.by_dtype(pl.List(pl.String))`, which Nanuq cannot spell yet.
+types, `col(Date, Duration)`, with the `Duration` of `std/times`.
 """
+
+tabs """
+rebels.select(cs.by_dtype(pl.List(pl.String)))
+""":
+  nbCode:
+    nbShow rebels.select(col(seq[string]))
 
 nbText: """
 ### Selecting Based on Position

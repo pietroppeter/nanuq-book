@@ -3,8 +3,7 @@ bookInit()
 
 nbText: "# Strings"
 
-attribution userGuide("Strings", "expressions/strings",
-  "Left out: `extract_all` (it returns a list column, and Nanuq has no lists yet).")
+attribution userGuide("Strings", "expressions/strings", "")
 
 nbText: """
 The following section discusses operations performed on string data, which is a frequently
@@ -25,9 +24,9 @@ the strings in a column in terms of the number of bytes and the number of charac
 """
 
 nanuq """
-Nanuq 0.3 has the `str` namespace, with Polars' names in camelCase (`len_bytes` is
-`lenBytes`). It has about 25 of the 40+ functions so far: the ones that return lists or
-structs (`split`, `extract_all`, `extract_groups`) wait for nested types.
+Nanuq has the `str` namespace, with Polars' names in camelCase (`len_bytes` is
+`lenBytes`), including the functions that return lists or structs (`split`,
+`extract_all`, `extract_groups`).
 """
 
 tabs """
@@ -141,17 +140,17 @@ pattern `(\d+)`, which matches one or more digits. The resulting output of the f
 `extract_all` is a list containing all instances of the matched pattern within the string.
 """
 
-python """
+tabs """
 df = pl.DataFrame({"text": ["123 bla 45 asd", "xyz 678 910t"]})
 df.select(
     pl.col("text").str.extract_all(r"(\d+)").alias("extracted_nrs"),
 )
-"""
-
-nanuq """
-Nanuq has no `extractAll` yet: it returns a list column, and Nanuq has no lists. The
-Python code runs on its own above.
-"""
+""":
+  nbCode:
+    let nrs = newDataFrame:
+      text: ["123 bla 45 asd", "xyz 678 910t"]
+    nbShow nrs.select(
+      col.text.str.extractAll(r"(\d+)").alias("extracted_nrs"))
 
 nbText: """
 ### Replace a pattern

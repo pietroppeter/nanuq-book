@@ -4,8 +4,7 @@ bookInit()
 nbText: "# Beginning expressions"
 
 attribution definitiveGuide(7, "Beginning Expressions",
-  "Data is read from `data/definitive-guide/`. Left out: the group-by on the last word of " &
-  "`origin` (it needs `str.split` and lists), `meta.has_multiple_outputs`, top-level " &
+  "Data is read from `data/definitive-guide/`. Left out: `meta.has_multiple_outputs`, top-level " &
   "`pl.select`, list literals, `repeat`/`zeros`/`ones`, the range functions, the `name` " &
   "methods other than `suffix`/`prefix`, and Series arithmetic (`fruit[\"weight\"] > 1000`).")
 
@@ -98,11 +97,18 @@ fruit.filter(
   nbCode:
     nbShow fruit.filter(col.weight > 1000 and col.is_round)
 
-nanuq """
-The book next groups the fruit by the last word of their origin
-(`pl.col("origin").str.split(" ").list.last()`). Nanuq has no lists yet, so that example is
-left out.
-"""
+nbText: "Grouping takes expressions too, here the last word of the fruit's origin:"
+
+tabs """
+fruit.group_by(pl.col("origin").str.split(" ").list.last()).agg(
+    pl.len(),
+    average_weight=pl.col("weight").mean()
+)
+""":
+  nbCode:
+    nbShow fruit.groupBy(col.origin.str.split(" ").list.last).agg(
+      len(),
+      col.weight.mean.alias("average_weight"))
 
 nbText: """
 ### Sorting rows with expressions
@@ -172,10 +178,10 @@ tabs """
 fruit.group_by(is_orange).len()
 """:
   nbCode:
-    nbShow fruit.groupBy(isOrange).agg(col.name.len.alias("len"))
+    nbShow fruit.groupBy(isOrange).agg(len())
 
 nanuq """
-Nanuq's group-by has no `len()` shortcut yet: it counts rows with `len` on any column.
+Nanuq's group-by has no `len()` shortcut: `agg(len())` counts the rows of each group.
 """
 
 tabs """

@@ -5,15 +5,13 @@ nbText: "# Textual and temporal data types"
 
 attribution definitiveGuide(12, "Working with Textual, Temporal, and Nested Data Types",
   "The string, categorical, enum and temporal examples of the chapter; the data is read " &
-  "from `data/definitive-guide/`. Left out: `str.split` with `list.get`, `extract_all`, " &
-  "the string cache, `cat.get_categories`, the deprecated physical ordering of " &
-  "categoricals, and the List, Array and Struct sections, which wait for nested types " &
-  "in Nanuq.")
+  "from `data/definitive-guide/`. Left out: the string cache, `cat.get_categories` and " &
+  "the deprecated physical ordering of categoricals.")
 
 nbText: """
 Beyond numbers, a column can hold text, a fixed set of categories, dates and times, or
 nested values. Each of these types has its own namespace of expressions: `str`, `cat`,
-`dt`, `list`, `arr` and `struct`. Nanuq 0.3 has the first three.
+`dt`, `list`, `arr` and `struct`. Nanuq has all six.
 
 ## String
 
@@ -69,16 +67,20 @@ corpus
 tabs """
 corpus.with_columns(
     first_5_chars=pl.col("processed_text").str.slice(0, 5),
+    first_word=pl.col("processed_text")
+    .str.split(" ")
+    .list.get(0),
+    second_word=pl.col("processed_text").str.split(" ").list.get(1),
 )
 """:
   nbCode:
-    nbShow corpus.withColumns(col.processed_text.str.slice(0, 5).alias("first_5_chars"))
-
-nanuq """
-The book also takes the first and second word, with `str.split(" ")` and `list.get`.
-`split` gives a list per row, and Nanuq has no list columns yet, so this cell keeps the
-first five characters only.
-"""
+    nbShow corpus.withColumns(
+      col.processed_text.str.slice(0, 5).alias("first_5_chars"),
+      col.processed_text
+        .str.split(" ")
+        .list.get(0)
+        .alias("first_word"),
+      col.processed_text.str.split(" ").list.get(1).alias("second_word"))
 
 tabs """
 corpus.with_columns(
@@ -93,9 +95,9 @@ corpus.with_columns(
       col.processed_text.str.lenBytes.alias("len_bytes"),
       col.processed_text.str.countMatches("a").alias("count_a"))
 
-nbText: "Extracting all the hashtags of a post gives a list, so this one is Python only:"
+nbText: "Extracting all the hashtags of a post gives a list per row:"
 
-python """
+tabs """
 posts = pl.DataFrame(
     {"post": ["Loving #python and #polars!", "A boomer post without a hashtag"]}
 )
@@ -105,7 +107,14 @@ hashtag_regex = r"#(\w+)"
 posts.with_columns(
     hashtags=pl.col("post").str.extract_all(hashtag_regex)
 )
-"""
+""":
+  nbCode:
+    let posts = newDataFrame:
+      post: ["Loving #python and #polars!", "A boomer post without a hashtag"]
+
+    let hashtagRegex = r"#(\w+)"
+
+    nbShow posts.withColumns(col.post.str.extractAll(hashtagRegex).alias("hashtags"))
 
 nbText: """
 ## Categorical
@@ -330,9 +339,233 @@ pl.DataFrame(
       .withColumns(
         col.parsed.dt.convertTimeZone("Europe/Amsterdam").alias("converted"))
 
-nanuq """
-The chapter goes on with List, Array and Struct columns. Nanuq has no nested types yet,
-so those sections are left out; they come with a later release.
+nbText: """
+## List
+
+### List Examples
+
+A list column holds a list of values of the same type in each row, of any length. Some
+list methods reduce each list to one value:
 """
+
+tabs """
+bools = pl.DataFrame({"values": [[True, True], [False, False, True], [False]]})
+
+bools.with_columns(
+    all_true=pl.col("values").list.all(),
+    any_true=pl.col("values").list.any(),
+)
+""":
+  nbCode:
+    let bools = newDataFrame:
+      values: [@[true, true], @[false, false, true], @[false]]
+
+    nbShow bools.withColumns(
+      col.values.list.all.alias("all_true"),
+      col.values.list.any.alias("any_true"))
+
+nbText: "`list.eval` runs any expression on the values of each list, with `pl.element()` standing for them:"
+
+tabs """
+groups = pl.DataFrame({"ages": [[18, 21], [30, 40, 50], [42, 69]]})
+
+groups.with_columns(
+    over_forty=pl.col("ages").list.eval(
+        pl.element() > 40,
+        parallel=True,
+    )
+).with_columns(
+    all_over_forty=pl.col("over_forty").list.all()
+)
+""":
+  nbCode:
+    let groups = newDataFrame:
+      ages: [@[18, 21], @[30, 40, 50], @[42, 69]]
+
+    nbShow groups.withColumns(
+      col.ages.list.eval(element() > 40).alias("over_forty")
+    ).withColumns(
+      col.over_forty.list.all.alias("all_over_forty"))
+
+tabs """
+groups.with_columns(
+    ages_sorted_descending=pl.col("ages").list.sort(descending=True)
+)
+""":
+  nbCode:
+    nbShow groups.withColumns(
+      col.ages.list.sort(descending = true).alias("ages_sorted_descending"))
+
+nbText: "Exploding gives one row per value, on the frame or on one column:"
+
+tabs """
+groups.explode("ages")
+""":
+  nbCode:
+    nbShow groups.explode("ages")
+
+tabs """
+groups.select(ages=pl.col("ages").list.explode())
+""":
+  nbCode:
+    nbShow groups.select(col.ages.list.explode.alias("ages"))
+
+nbText: """
+## Array
+
+### Array Examples
+
+An array column holds the same number of values in every row, like a week of
+temperatures:
+"""
+
+tabs """
+events = pl.DataFrame(
+    [
+        pl.Series(
+            "location", ["Paris", "Amsterdam", "Barcelona"], dtype=pl.String
+        ),
+        pl.Series(
+            "temperatures",
+            [
+                [23, 27, 21, 22, 24, 23, 22],
+                [17, 19, 15, 22, 18, 20, 21],
+                [30, 32, 28, 29, 34, 33, 31],
+            ],
+            dtype=pl.Array(pl.Int64, shape=7),
+        ),
+    ]
+)
+
+events
+""":
+  nbCode:
+    let events = newDataFrame(
+      series("location", ["Paris", "Amsterdam", "Barcelona"]),
+      series("temperatures", [
+        [23, 27, 21, 22, 24, 23, 22],
+        [17, 19, 15, 22, 18, 20, 21],
+        [30, 32, 28, 29, 34, 33, 31]]))
+
+    nbShow events
+
+nanuq """
+No `dtype` needed: a Nim `array[7, int]` is an `Array(Int64, 7)` already.
+"""
+
+tabs """
+events.with_columns(
+    median=pl.col("temperatures").arr.median(),
+    max=pl.col("temperatures").arr.max(),
+    warmest_dow=pl.col("temperatures").arr.arg_max(),
+)
+""":
+  nbCode:
+    nbShow events.withColumns(
+      col.temperatures.arr.median.alias("median"),
+      col.temperatures.arr.max.alias("max"),
+      col.temperatures.arr.argMax.alias("warmest_dow"))
+
+nbText: """
+## Struct
+
+### Struct Examples
+
+A struct column holds a few named fields in each row:
+"""
+
+tabs """
+from datetime import date
+
+orders = pl.DataFrame(
+    {
+        "customer_id": [2781, 6139, 5392],
+        "order_details": [
+            {"amount": 250.00, "date": date(2024, 1, 3), "items": 5},
+            {"amount": 150.00, "date": date(2024, 1, 5), "items": 1},
+            {"amount": 100.00, "date": date(2024, 1, 2), "items": 3},
+        ],
+    },
+)
+
+orders
+""":
+  nbCode:
+    let orders = newDataFrame:
+      customer_id: [2781, 6139, 5392]
+      order_details: [
+        (amount: 250.00, date: date(2024, 1, 3), items: 5),
+        (amount: 150.00, date: date(2024, 1, 5), items: 1),
+        (amount: 100.00, date: date(2024, 1, 2), items: 3)]
+
+    nbShow orders
+
+nanuq """
+A Python dict is a named tuple in Nim; Nanuq's `date(y, m, d)` gives a Polars `Date`.
+"""
+
+tabs """
+orders.select(pl.col("order_details").struct.field("amount"))
+""":
+  nbCode:
+    nbShow orders.select(col.order_details.struct.field("amount"))
+
+tabs """
+order_details_df = orders.unnest("order_details")
+
+order_details_df
+""":
+  nbCode:
+    let orderDetails = orders.unnest("order_details")
+
+    nbShow orderDetails
+
+tabs """
+order_details_df.select(
+    "amount",
+    "date",
+    "items",
+    order_details=pl.struct(pl.col("amount"), pl.col("date"), pl.col("items")),
+)
+""":
+  nbCode:
+    nbShow orderDetails.select(
+      col.amount,
+      col("date"),
+      col.items,
+      asStruct(col.amount, col("date"), col.items).alias("order_details"))
+
+nanuq """
+`pl.struct` is `asStruct` in Nanuq: `struct` is the namespace.
+"""
+
+nbText: "`value_counts` gives a struct per distinct value, with the value and its count:"
+
+tabs """
+basket = pl.DataFrame(
+    {
+        "fruit": ["cherry", "apple", "banana", "banana", "apple", "banana"],
+    }
+)
+
+basket
+""":
+  nbCode:
+    let basket = newDataFrame:
+      fruit: ["cherry", "apple", "banana", "banana", "apple", "banana"]
+
+    nbShow basket
+
+tabs """
+basket.select(pl.col("fruit").value_counts(sort=True))
+""":
+  nbCode:
+    nbShow basket.select(col.fruit.valueCounts(sort = true))
+
+tabs """
+basket.select(pl.col("fruit").value_counts(sort=True).struct.unnest())
+""":
+  nbCode:
+    nbShow basket.select(col.fruit.valueCounts(sort = true).struct.unnest)
 
 bookSave()

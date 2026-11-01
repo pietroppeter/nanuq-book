@@ -43,11 +43,10 @@ from polars import selectors as cs
 )
 """:
   nbCode:
-    nbShow df.select(col(SomeNumber).sum)
+    nbShow df.select(col(SomeNumber)).sum()
 
 nanuq """
-`col(SomeNumber)` is Nanuq's `cs.numeric()`. Python's frame-level `.sum()` is a `sum` on
-every column; Nanuq has no frame-level aggregations yet, so the sum goes in the `select`.
+`col(SomeNumber)` is Nanuq's `cs.numeric()`.
 """
 
 nbText: """
@@ -60,7 +59,7 @@ s.sum()
 """:
   nbCode:
     let s = df.select("Quantity").toSeries
-    echo s.toFrame.select(col.Quantity.sum).toSeries.item(int)
+    echo s.sum.item(int)
 
 tabs """
 df.select(pl.col('Quantity').sum())
@@ -245,12 +244,12 @@ for name, data in df.group_by(['Brand'], maintain_order=True):
     print(name[0], type(data))
 """:
   nbCode:
-    for data in df.partitionBy("Brand"):
-      echo data.getStr("Brand", 0), " ", $typeof(data)
+    for name, data in df.groupBy("Brand"):
+      echo name[0], " ", $typeof(data)
 
 nanuq """
-Nanuq can't iterate a `groupBy` yet; `partitionBy` gives the same frames, and the key is
-read from the first row.
+The key of each group is a `seq[string]`, one value per grouping column, like Python's
+tuple.
 """
 
 nbText: """
@@ -552,7 +551,7 @@ tabs """
         col.Category,
         col.Brand,
         col.Subcategory,
-        col("Sales Amount").mean.over(["Category", "Brand"]).alias("Avg Sales per Cat and Brand"))
+        col("Sales Amount").mean.over("Category", "Brand").alias("Avg Sales per Cat and Brand"))
       .filter(col.Category == "Computers")
       .unique()
       .sort(["Brand", "Subcategory"])

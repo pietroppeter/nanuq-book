@@ -32,6 +32,8 @@ var book = initBookWithToc:
     entry("CSV", "csv")
     entry("Parquet", "parquet")
     entry("JSON files", "json")
+    entry("Excel", "excel")
+    entry("Databases", "databases")
     entry("SQL: introduction", "sql_intro")
     entry("SQL: SELECT", "sql_select")
     entry("SQL: CREATE", "sql_create")
@@ -50,6 +52,7 @@ var book = initBookWithToc:
     entry("Summarizing and aggregating", "summarizing_and_aggregating")
     entry("Joining and concatenating", "joining_and_concatenating")
     entry("Reshaping", "reshaping")
+    entry("Polars internals", "polars_internals")
   section("Polars Cookbook", "polars-cookbook/index.md"):
     entry("Getting started", "getting_started")
     entry("Data transformation techniques", "transformations")

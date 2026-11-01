@@ -4,8 +4,7 @@ bookInit()
 nbText: "# Combining expressions"
 
 attribution definitiveGuide(9, "Combining Expressions",
-  "Data is read from `data/definitive-guide/`. Python's top-level `pl.select` is " &
-  "`newDataFrame().select` in Nim. Left out: the `Expr.mul()` method spelling and " &
+  "Data is read from `data/definitive-guide/`. Left out: " &
   "`tbl_cell_numeric_alignment` (the HTML tables don't use it).")
 
 nbText: """
@@ -35,20 +34,24 @@ bind more loosely than comparisons, so no parentheses are needed around `col.wei
 nbText: """
 ## Inline operators versus methods
 
-Python offers each operator also as a method (`pl.col("i").mul(pl.col("j"))`). Nim only
-has the operators, which already are procs: `col.i * col.j` is the call `` `*`(col.i, col.j) ``.
+Each operator is also a method: `*` is `mul`. In Nim an operator already is a proc, so
+`col.i * col.j` is the call `` `*`(col.i, col.j) ``; Nanuq has the method names too, for
+code ported from Python.
 """
 
 tabs """
 pl.DataFrame({"i": [6.0, 0, 2, 2.5], "j": [7.0, 1, 2, 3]}).with_columns(
     (pl.col("i") * pl.col("j")).alias("*"),
+    pl.col("i").mul(pl.col("j")).alias("Expr.mul()"),
 )
 """:
   nbCode:
     let ij = newDataFrame:
       i: [6.0, 0, 2, 2.5]
       j: [7.0, 1, 2, 3]
-    nbShow ij.withColumns((col.i * col.j).alias("*"))
+    nbShow ij.withColumns(
+      (col.i * col.j).alias("*"),
+      col.i.mul(col.j).alias("Expr.mul()"))
 
 nbText: """
 ## Arithmetic operations
@@ -107,15 +110,15 @@ setFloatPrecision(none(int))
 nbText: """
 ## Comparison operations
 
-Strings compare alphabetically. A one-row frame without input columns is made with
-`newDataFrame().select`, where Python has `pl.select`:
+Strings compare alphabetically. `select` without a frame evaluates expressions that need
+no input columns:
 """
 
 tabs """
 pl.select(pl.lit("a") > pl.lit("b"))
 """:
   nbCode:
-    nbShow newDataFrame().select(lit("a") > lit("b"))
+    nbShow select(lit("a") > lit("b"))
 
 tabs """
 fruit.select(
@@ -138,13 +141,13 @@ pl.select((pl.lit(3) < pl.lit(x)) & (pl.lit(x) < pl.lit(5))).item()
 """:
   nbCode:
     let x = 4
-    echo newDataFrame().select(lit(3) < lit(x) and lit(x) < lit(5)).toSeries.item(bool)
+    echo select(lit(3) < lit(x) and lit(x) < lit(5)).toSeries.item(bool)
 
 tabs """
 pl.select(pl.lit(x).is_between(3, 5)).item()
 """:
   nbCode:
-    echo newDataFrame().select(lit(x).isBetween(3, 5)).toSeries.item(bool)
+    echo select(lit(x).isBetween(3, 5)).toSeries.item(bool)
 
 nbText: """
 Every comparison operator, and two ways of saying "close enough" or "in a range":
@@ -192,7 +195,7 @@ pl.select(
   nbCode:
     import std/times
 
-    nbShow newDataFrame().select(
+    nbShow select(
       (lit(true) > 0).alias("bool_num"),
       (lit(timeOfDay(23, 58)) > lit(timeOfDay(0, 0))).alias("time_time"),
       (lit(dateTime(1969, mJul, 21, 2, 56, zone = utc())) <
@@ -225,7 +228,7 @@ pl.select(p & q).item()
       let x = 7
       let p = lit(3) < lit(x)
       let q = lit(x) < lit(5)
-      echo newDataFrame().select(p and q).toSeries.item(bool)
+      echo select(p and q).toSeries.item(bool)
 
 nbText: """
 The whole truth table, including *nand* (↑) and *nor* (↓), which are the negations of
@@ -267,7 +270,7 @@ tabs """
 pl.select(pl.lit(10) | pl.lit(34)).item()
 """:
   nbCode:
-    echo newDataFrame().select(lit(10) or lit(34)).toSeries.item(int)
+    echo select(lit(10) or lit(34)).toSeries.item(int)
 
 tabs """
 bits = pl.DataFrame(
@@ -360,7 +363,7 @@ scientists.select(
 """:
   nbCode:
     nbShow scientists.select(
-      concatStr([all().toExpr], separator = " ").alias("concat_str"),
+      concatStr([all()], separator = " ").alias("concat_str"),
       format("{}, {} from {}", col.last_name, col.first_name, col.country).alias("format"))
 
 tabs """

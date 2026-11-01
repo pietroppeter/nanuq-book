@@ -56,17 +56,13 @@ tabs """
 df.null_count()
 """:
   nbCode:
-    nbShow df.select(all().nullCount)
-
-nanuq """
-Nanuq has no frame-level `nullCount()` yet; `select(all().nullCount)` gives the same frame.
-"""
+    nbShow df.nullCount()
 
 tabs """
 df.select('avg_temp_celsius').null_count()
 """:
   nbCode:
-    nbShow df.select(col.avg_temp_celsius.nullCount)
+    nbShow df.select("avg_temp_celsius").nullCount()
 
 tabs """
 df.select(pl.col('avg_temp_celsius').null_count())
@@ -153,7 +149,7 @@ tabs """
 df.drop_nulls().null_count()
 """:
   nbCode:
-    nbShow df.dropNulls().select(all().nullCount)
+    nbShow df.dropNulls().nullCount()
 
 tabs """
 df.select(
@@ -232,12 +228,7 @@ tabs """
 df.fill_nan(None).drop_nulls()
 """:
   nbCode:
-    nbShow df.withColumns(col.avg_temp_celsius.fillNan(nil)).dropNulls()
-
-nanuq """
-Nanuq has `fillNan` on expressions only, not yet on frames, so the Nim tab fills the one
-float column.
-"""
+    nbShow df.fillNan(nil).dropNulls()
 
 nbText: """
 ## Filling missing values

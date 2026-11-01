@@ -227,6 +227,74 @@ nbText: """
 That's a pretty complex set of requirements done very elegantly in Polars! To learn more
 about the function `over`, used above,
 [see the user guide section on window functions](window_functions.html).
+
+### Using multiple columns in a single expression
+
+As mentioned earlier, the data type `Struct` is also useful if you need to pass multiple
+columns as input to an expression. As an example, suppose we want to compute
+[the Ackermann function](https://en.wikipedia.org/wiki/Ackermann_function) on two columns
+of a dataframe. There is no way of composing Polars expressions to compute the Ackermann
+function[^1], so we define a custom function:
+"""
+
+tabs """
+def ack(m, n):
+    if not m:
+        return n + 1
+    if not n:
+        return ack(m - 1, 1)
+    return ack(m - 1, ack(m, n - 1))
+""":
+  nbCode:
+    proc ack(m, n: int): int =
+      if m == 0:
+        return n + 1
+      if n == 0:
+        return ack(m - 1, 1)
+      ack(m - 1, ack(m, n - 1))
+
+nbText: """
+Now, to compute the values of the Ackermann function on those arguments, we start by
+creating a `Struct` with fields `m` and `n` and then use the function `map_elements` to
+apply the function `ack` to each value:
+"""
+
+tabs """
+values = pl.DataFrame(
+    {
+        "m": [0, 0, 0, 1, 1, 1, 2],
+        "n": [2, 3, 4, 1, 2, 3, 1],
+    }
+)
+result = values.with_columns(
+    pl.struct(["m", "n"])
+    .map_elements(lambda s: ack(s["m"], s["n"]), return_dtype=pl.Int64)
+    .alias("ack")
+)
+result
+""":
+  nbCode:
+    let values = newDataFrame:
+      m: [0, 0, 0, 1, 1, 1, 2]
+      n: [2, 3, 4, 1, 2, 3, 1]
+
+    nbShow values.withColumns(
+      asStruct("m", "n")
+        .mapElements(proc (s: tuple[m, n: int]): int = ack(s.m, s.n))
+        .alias("ack"))
+
+nanuq """
+The Nim function gets each struct as a typed value, here a named tuple whose fields match
+the struct's fields by name (an object works too), and its result type, `int`, gives the
+column's `Int64`.
+"""
+
+nbText: """
+Refer to
+[this section of the user guide to learn more about applying user-defined Python functions to your data](user_defined_functions.html).
+
+[^1]: To say that something cannot be done is quite a bold claim. If you prove us wrong,
+please let us know!
 """
 
 bookSave()

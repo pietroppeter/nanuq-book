@@ -4,11 +4,12 @@ bookInit()
 nbText: "# Basic operations"
 
 attribution userGuide("Basic operations", "expressions/basic-operations",
-  "Left out: the bitwise operators, `approx_n_unique`, `value_counts` and `unique_counts` " &
-  "(not in Nanuq yet), and the named-function forms of the operators (a Python " &
-  "workaround). `n_unique` counts the `names` column instead of 100,000 random integers. " &
-  "The random column is numpy's, seeded as in the original; the Nim side " &
-  "writes the same five numbers out.")
+  "Left out: the bitwise operators and the named-function forms of the operators (a " &
+  "Python workaround). The 100,000 random integers are drawn with Polars' seeded " &
+  "`sample` instead of numpy, so both sides get the same ones; `value_counts` on an " &
+  "expression returns structs, which Nanuq does not have yet, so it runs in Python " &
+  "only and the Nim side shows the frame version. The random column is numpy's, seeded " &
+  "as in the original; the Nim side writes the same five numbers out.")
 
 nbText: """
 This section shows how to do basic operations on dataframe columns, like do basic arithmetic
@@ -159,20 +160,87 @@ is good enough, you can use the function `approx_n_unique` that uses the algorit
 [HyperLogLog++](https://en.wikipedia.org/wiki/HyperLogLog) to estimate the result.
 """
 
+nbText: """
+The example below shows an example series where the `approx_n_unique` estimation is wrong
+by 0.9%:
+"""
+
 nanuq """
-Nanuq has `nUnique` but not `approx_n_unique`, `value_counts` or `unique_counts` yet. The
-original compares the two counts on 100,000 random integers; here `nUnique` counts the
-names of the dataframe above:
+The original draws its 100,000 integers with numpy. Here both sides draw them with
+Polars' `sample` (with replacement, from the numbers below 100,000) and the same seed, so
+they count the same numbers. On these, the estimate is off by 0.6%.
+"""
+
+tabs """
+long_df = pl.DataFrame({"numbers": range(100_000)}).sample(
+    100_000, with_replacement=True, seed=42
+)
+
+long_df.select(
+    pl.col("numbers").n_unique().alias("n_unique"),
+    pl.col("numbers").approx_n_unique().alias("approx_n_unique"),
+)
+""":
+  nbCode:
+    import std/sequtils
+    let longDf = newDataFrame(series("numbers", toSeq(0 ..< 100_000))).sample(
+      100_000, withReplacement = true, seed = 42)
+
+    let counts = longDf.select(
+      col("numbers").nUnique.alias("n_unique"),
+      col("numbers").approxNUnique.alias("approx_n_unique"))
+    nbShow counts
+
+nbText: """
+You can get more information about the unique values and their counts with the function
+`value_counts`, that Polars also provides:
+"""
+
+nanuq """
+`value_counts` on an expression returns a column of structs, and Nanuq has no structs
+yet, so this cell runs in Python only. Nanuq has `valueCounts` on a dataframe or a Series
+instead, which returns the values and their counts as a dataframe, like Python's
+`Series.value_counts` (shown after it).
+"""
+
+python """
+df.select(
+    pl.col("names").value_counts().alias("value_counts"),
+)
+"""
+
+tabs """
+df["names"].value_counts(sort=True)
+""":
+  nbCode:
+    let nameCounts = df["names"].valueCounts(sort = true)
+    nbShow nameCounts
+
+nbText: """
+The function `value_counts` returns the results in
+[structs, a data type that we will explore in a later section](https://docs.pola.rs/user-guide/expressions/structs/).
+
+Alternatively, if you only need a series with the unique values or a series with the
+unique counts, they are one function away:
 """
 
 tabs """
 df.select(
-    pl.col("names").n_unique().alias("n_unique"),
+    pl.col("names").unique(maintain_order=True).alias("unique"),
+    pl.col("names").unique_counts().alias("unique_counts"),
 )
 """:
   nbCode:
-    let uniqueNames = df.select(col("names").nUnique.alias("n_unique"))
-    nbShow uniqueNames
+    let uniqueCounts = df.select(
+      col("names").unique(maintainOrder = true).alias("unique"),
+      col("names").uniqueCounts.alias("unique_counts"))
+    nbShow uniqueCounts
+
+nbText: """
+Note that we need to specify `maintain_order=True` in the function `unique` so that the
+order of the results is consistent with the order of the results in `unique_counts`. See
+the API reference for more information.
+"""
 
 nbText: """
 ## Conditionals

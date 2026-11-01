@@ -4,8 +4,8 @@ bookInit()
 nbText: "# Getting started"
 
 attribution polarsCookbook(1, "Getting Started with Python Polars",
-  "Data is read from `data/polars-cookbook/`. Left out: `from_numpy`, most of the Series " &
-  "recipe, `flags`, `show_graph` (it draws the query plan with Graphviz), and the recipe on " &
+  "Data is read from `data/polars-cookbook/`. Left out: `from_numpy`, " &
+  "`flags`, `show_graph` (it draws the query plan with Graphviz), and the recipe on " &
   "data larger than memory, which needs a Chicago taxi trips file that the book does not ship.")
 
 nbText: """
@@ -92,9 +92,12 @@ The recipe also shows `df.flags` (which columns Polars knows to be sorted) and
 nbText: """
 ## The Polars Series
 
-A Series is one named column. Nanuq builds them with `series` and puts them together into
-frames, but it has no Series methods yet, so this recipe is left out except for the
-constructor:
+A Series is one named column: one dimension, one data type. You can build one directly:
+"""
+
+nanuq """
+Nanuq shows a Series as a one-column frame (`toFrame`), so the Python side does too
+(`to_frame`).
 """
 
 tabs """
@@ -103,13 +106,72 @@ s.head().to_frame()
 """:
   nbCode:
     let s = series("col", [1, 2, 3, 4, 5])
-    nbShow newDataFrame(s).head()
+    nbShow s.head.toFrame
+
+nbText: """
+or take one out of a frame: `to_series` takes a column by position (the first by
+default), `get_column` by name.
+"""
+
+tabs """
+data = {'a': [1,2,3], 'b': [4,5,6]}
+s_a = (
+    pl.DataFrame(data)
+    .to_series()
+)
+s_a.head().to_frame()
+""":
+  nbCode:
+    let data = newDataFrame:
+      a: [1, 2, 3]
+      b: [4, 5, 6]
+    let sA = data.toSeries()
+    nbShow sA.head.toFrame
+
+tabs """
+s_b = (
+    pl.DataFrame(data)
+    .to_series(1)
+)
+s_b.head().to_frame()
+""":
+  nbCode:
+    let sB = data.toSeries(1)
+    nbShow sB.head.toFrame
 
 nanuq """
-Nanuq shows the Series as a one-column frame, so the Python side does too (`to_frame`). It has no `to_series` and `get_column`
-returning a Series yet; to get a column's values out, use `toList`
-(`df.toList("Age", Option[float])`).
+`data.getColumn("b")` can also be written `data["b"]`, as in Python.
 """
+
+tabs """
+s_b2 = (
+    pl.DataFrame(data)
+    .get_column('b')
+)
+s_b2.head().to_frame()
+""":
+  nbCode:
+    let sB2 = data.getColumn("b")
+    nbShow sB2.head.toFrame
+
+nbText: """
+A Series knows its length, its name and its data type:
+"""
+
+nanuq """
+A Series has one dimension, so where Python's `shape` is the tuple `(5,)`, Nanuq has
+`len`. Nanuq prints data types with Polars' short names, `i64` for `Int64`.
+"""
+
+tabs """
+print(s.shape)
+print(s.name)
+print(s.dtype)
+""":
+  nbCode:
+    echo s.len
+    echo s.name
+    echo s.dtype
 
 nbText: """
 ## The Polars LazyFrame

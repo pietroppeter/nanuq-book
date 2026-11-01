@@ -273,7 +273,7 @@ df.group_by(
       col("name").len.alias("len"),
       col("height").max.alias("tallest"),
       col("weight", "height").mean.name.prefix("avg_"),
-    ).collect
+    )
     nbShow groups
 
 nanuq """

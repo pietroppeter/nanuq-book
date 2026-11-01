@@ -7,7 +7,7 @@ attribution definitiveGuide(10, "Selecting and Creating Columns",
   "The data is read from `data/definitive-guide/`. Python's column slices `rebels[:, :6]` " &
   "are `select`s by name here. Left out: selecting by position (`cs.by_index`), most of " &
   "combining selectors with set operations, the cells that the book shows raising an " &
-  "error, and `cut`, which Nanuq does not have yet.")
+  "error.")
 
 nbText: """
 Most of what you do to a frame comes down to two verbs: `select`, which keeps the columns
@@ -146,7 +146,7 @@ tabs """
 rebels.group_by("hair_color").agg(cs.numeric().mean())
 """:
   nbCode:
-    nbShow rebels.groupBy(col.hair_color).agg(col(SomeNumber).mean).collect
+    nbShow rebels.groupBy(col.hair_color).agg(col(SomeNumber).mean)
 
 tabs """
 rebels.select(cs.string())
@@ -253,11 +253,14 @@ gives a duration, and the `dt` namespace has `totalDays`.
 nbText: """
 The columns in one `withColumns` are computed side by side, so one cannot use another:
 the book shows that referring to `bmi` in the same call raises a `ColumnNotFoundError`,
-and that two calls in a row work. That example bins the BMI with `cut`, which Nanuq does
-not have yet:
+and that two calls in a row work. The second call bins the BMI with `cut`:
 """
 
-python """
+nanuq """
+Nanuq's `cut` makes a Categorical column, like Python's.
+"""
+
+tabs """
 (
     rebels.with_columns(
         bmi=pl.col("mass") / ((pl.col("height") / 100) ** 2)
@@ -267,7 +270,13 @@ python """
         )
     )
 )
-"""
+""":
+  nbCode:
+    nbShow rebels.withColumns(
+        (col.mass / pow(col.height / 100, 2)).alias("bmi")
+      ).withColumns(
+        col.bmi.cut([18.5, 25], labels = ["Underweight", "Normal", "Overweight"])
+          .alias("bmi_cat"))
 
 nbText: "`select` creates columns too. The five characters with the highest BMI:"
 
@@ -288,12 +297,7 @@ tabs """
         (col.mass / pow(col.height / 100, 2)).alias("bmi"),
         col.species)
       .dropNulls()
-      .sort("bmi", descending = true)
-      .head(5)
-
-nanuq """
-Nanuq has no `top_k` yet: a descending `sort` and `head` give the same rows.
-"""
+      .topK(5, by = "bmi")
 
 nbText: "A literal is broadcast to every row:"
 

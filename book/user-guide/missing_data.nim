@@ -4,10 +4,7 @@ bookInit()
 nbText: "# Missing data"
 
 attribution userGuide("Missing data", "expressions/missing-data",
-  "Left out: `interpolate` and `fill_nan` (not in Nanuq yet; the `fill_nan` example runs " &
-  "on the Python side only). Nanuq has no frame-wide `null_count`, so the Nim side counts " &
-  "with `isNull.sum`, and casts to `float` before dividing two integer columns (Nanuq's `/` " &
-  "divides integers as integers).")
+  "Nanuq has no frame-wide `null_count`, so the Nim side counts with `isNull.sum`.")
 
 nbText: """
 This section of the user guide teaches how to work with missing data in Polars.
@@ -206,9 +203,27 @@ You can find other fill strategies in the API docs.
 """
 
 nanuq """
-Nanuq's other strategies fill with the column's `Min`, `Max`, `Mean`, `Zero` or `One`. The
-original's next section, “Fill with interpolation”, is left out: `interpolate` is not in
-Nanuq yet.
+Nanuq's other strategies fill with the column's `Min`, `Max`, `Mean`, `Zero` or `One`.
+"""
+
+nbText: """
+### Fill with interpolation
+
+Additionally, you can fill intermediate missing data with interpolation by using the
+function `interpolate` instead of the function `fill_null`:
+"""
+
+tabs """
+df.with_columns(
+    pl.col("col2").interpolate(),
+)
+""":
+  nbCode:
+    let fillInterpolationDf = df2.withColumns(col("col2").interpolate)
+    nbShow fillInterpolationDf
+
+nbText: """
+Note: With interpolate, nulls at the beginning and end of the series remain null.
 """
 
 nbText: """
@@ -283,17 +298,24 @@ with the value `null`:
 """
 
 nanuq """
-Nanuq has no `fill_nan` yet, so this one runs in Python only.
+Python's `None` is `nil` in Nanuq: `fillNan(nil)` replaces NaN with null.
 """
 
-python """
+tabs """
 nan_df.with_columns(
     pl.col("value").fill_nan(None).alias("replaced"),
 ).select(
     pl.all().mean().name.suffix("_mean"),
     pl.all().sum().name.suffix("_sum"),
 )
-"""
+""":
+  nbCode:
+    let meanNanDf = nanDf.withColumns(
+      col("value").fillNan(nil).alias("replaced"),
+    ).select(
+      all().mean.name.suffix("_mean"),
+      all().sum.name.suffix("_sum"))
+    nbShow meanNanDf
 
 nbText: """
 You can learn more about the value `NaN` in

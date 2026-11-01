@@ -4,9 +4,8 @@ bookInit()
 nbText: "# Joining and concatenating"
 
 attribution definitiveGuide(14, "Joining and Concatenating",
-  "Left out: the inexact (asof) joins and the campaign attribution use case built on them, " &
-  "`how=\"align\"` and `align_frames`, and `vstack`, `hstack`, `append` and `extend`, which " &
-  "Nanuq does not have yet.")
+  "Left out: `how=\"align\"` and `align_frames`, and `vstack`, `hstack`, `append` and " &
+  "`extend`, which Nanuq does not have yet.")
 
 nbText: """
 Data often comes in more than one table. A join puts two tables side by side, matching
@@ -216,11 +215,282 @@ the failing cell commented out; here both sides run it and catch the error, whic
 raises with the same type as Python since 0.3.
 """
 
-nanuq """
-The book's next part is about inexact joins (`join_asof`), which match each row with the
-nearest key, and a use case that credits sales to marketing campaigns with them. Nanuq has
-no asof joins yet, so that part is left out.
+nbText: """
+## Inexact joining
+
+Sometimes keys don't match exactly: a sale happens some time after the campaign that
+caused it, a reading comes in a few seconds after the event it measures. An asof join
+(`join_asof`) matches each row on the left with the *nearest* row on the right, instead of
+an equal one. Take two small frames with integer keys:
 """
+
+tabs """
+df_left = pl.DataFrame({"int_id": [10, 5], "value": ["b", "a"]})
+
+df_right = pl.DataFrame({"int_id": [4, 7, 12], "value": [1, 2, 3]})
+""":
+  nbCode:
+    var asofLeft = newDataFrame:
+      int_id: [10, 5]
+      value: ["b", "a"]
+    let asofRight = newDataFrame:
+      int_id: [4, 7, 12]
+      value: [1, 2, 3]
+
+nbText: """
+Both keys must be sorted. `df_left` isn't, and the book shows the join failing on it
+(`InvalidOperationError`, left commented out). Once it is sorted, every left row gets the
+last right row whose key is at or below its own:
+"""
+
+nanuq """
+`joinAsof` takes the key as `on` (a column name or an expression), like Python. Nanuq
+raises the same `InvalidOperationError` for unsorted keys.
+"""
+
+tabs """
+df_left = df_left.sort("int_id")
+df_right = df_right
+
+df_left.join_asof(df_right, on="int_id")
+""":
+  nbCode:
+    asofLeft = asofLeft.sort("int_id")
+
+    nbShow asofLeft.joinAsof(asofRight, on = "int_id")
+
+nbText: """
+The key column appears once, with the left values. With `coalesce=False` the right key is
+kept too, so you see which row was matched:
+"""
+
+tabs """
+df_left.join_asof(
+    df_right,
+    on="int_id",
+    coalesce=False,
+)
+""":
+  nbCode:
+    nbShow asofLeft.joinAsof(asofRight, on = "int_id", coalesce = false)
+
+nbText: """
+When the keys have different names, use `left_on` and `right_on`:
+"""
+
+tabs """
+df_left.join_asof(
+    df_right.rename({"int_id": "int_id_right"}),
+    left_on="int_id",
+    right_on="int_id_right",
+)
+""":
+  nbCode:
+    nbShow asofLeft.joinAsof(asofRight.rename({"int_id": "int_id_right"}),
+                           leftOn = "int_id", rightOn = "int_id_right")
+
+nbText: """
+### Inexact join strategies
+
+Which row counts as nearest is the `strategy`: `"backward"` (the default) looks for the
+last key at or before, `"forward"` for the first key at or after, and `"nearest"` for the
+closest either way. `tolerance` sets how far away a match may be; farther rows get nulls.
+The two frames again:
+"""
+
+tabs """
+print(df_left)
+print(df_right)
+""":
+  nbCode:
+    echo asofLeft
+    echo asofRight
+
+nanuq """
+In Nanuq the strategy is a value of the enum `AsofStrategy`: `Backward`, `Forward` or
+`Nearest`. The tolerance is a number for numeric keys, and a Polars interval (`"60d"`) or
+a std/times one (`60.days`) for temporal keys.
+"""
+
+tabs """
+df_left.join_asof(
+    df_right,
+    on="int_id",
+    tolerance=3,
+    strategy="backward",
+)
+""":
+  nbCode:
+    nbShow asofLeft.joinAsof(asofRight, on = "int_id", tolerance = 3, strategy = Backward)
+
+tabs """
+df_left.join_asof(
+    df_right,
+    on="int_id",
+    tolerance=3,
+    strategy="forward",
+)
+""":
+  nbCode:
+    nbShow asofLeft.joinAsof(asofRight, on = "int_id", tolerance = 3, strategy = Forward)
+
+tabs """
+df_left.join_asof(
+    df_right,
+    on="int_id",
+    tolerance=3,
+    strategy="nearest",
+)
+""":
+  nbCode:
+    nbShow asofLeft.joinAsof(asofRight, on = "int_id", tolerance = 3, strategy = Nearest)
+
+nanuq """
+The book's “Additional fine-tuning” covers `allow_exact_matches` and `check_sortedness`;
+Nanuq has both, as `allowExactMatches` and `checkSortedness`.
+"""
+
+nbText: """
+### Use case: marketing campaign attribution
+
+A shop ran marketing campaigns, each for one product type, and wants to know which sales
+came after which campaign. A campaign counts for the sales of its product type in the 60
+days after it. First the campaigns:
+"""
+
+tabs """
+campaigns = pl.scan_csv("data/definitive-guide/campaigns.csv")
+campaigns.head(1).collect()
+""":
+  nbCode:
+    var campaigns = scanCsv("data/definitive-guide/campaigns.csv")
+    nbShow campaigns.head(1).collect
+
+tabs """
+campaigns.select(pl.col("Product Type").unique()).collect()
+""":
+  nbCode:
+    nbShow campaigns.select(col("Product Type").unique).collect
+
+nbText: """
+and the sales:
+"""
+
+tabs """
+transactions = pl.scan_csv("data/definitive-guide/transactions.csv")
+transactions.head(1).collect()
+""":
+  nbCode:
+    var transactions = scanCsv("data/definitive-guide/transactions.csv")
+    nbShow transactions.head(1).collect
+
+nbText: """
+Both date columns are read as strings, so they are parsed first. Then each sale, sorted
+by date, is joined with the last campaign for the same product type (`by`) at most 60 days
+before it:
+"""
+
+nanuq """
+`str.toDatetime` parses straight to microseconds (its `timeUnit` defaults to
+`Microseconds`), where the book parses to nanoseconds and casts. `by` takes a column name
+or a list of them.
+"""
+
+tabs """
+transactions = transactions.with_columns(
+    pl.col("Sale Date")
+    .str.to_datetime("%Y-%m-%d %H:%M:%S%.f")
+    .cast(pl.Datetime("us")),
+)
+campaigns = campaigns.with_columns(
+    pl.col("Campaign Date").str.to_datetime("%Y-%m-%d %H:%M:%S"),
+)
+
+sales_with_campaign_df = (
+    transactions.sort("Sale Date")
+    .join_asof(
+        campaigns.sort("Campaign Date"),
+        left_on="Sale Date",
+        right_on="Campaign Date",
+        by="Product Type",
+        strategy="backward",
+        tolerance="60d",
+        check_sortedness=False,
+    )
+    .collect()
+)
+sales_with_campaign_df
+""":
+  nbCode:
+    transactions = transactions.withColumns(
+      col("Sale Date").str.toDatetime("%Y-%m-%d %H:%M:%S%.f"))
+    campaigns = campaigns.withColumns(
+      col("Campaign Date").str.toDatetime("%Y-%m-%d %H:%M:%S"))
+
+    let salesWithCampaignDf = transactions.sort("Sale Date")
+      .joinAsof(
+        campaigns.sort("Campaign Date"),
+        leftOn = "Sale Date",
+        rightOn = "Campaign Date",
+        by = "Product Type",
+        strategy = Backward,
+        tolerance = "60d",
+        checkSortedness = false)
+      .collect
+    nbShow salesWithCampaignDf
+
+nbText: """
+Did the campaigns make people buy more? The mean quantity per product type and campaign
+(null: no campaign in the 60 days before):
+"""
+
+tabs """
+(
+    sales_with_campaign_df.group_by("Product Type", "Campaign Name")
+    .agg(pl.col("Quantity").mean())
+    .sort("Product Type", "Campaign Name")
+)
+""":
+  nbCode:
+    nbShow salesWithCampaignDf.groupBy("Product Type", "Campaign Name")
+      .agg(col("Quantity").mean)
+      .sort(["Product Type", "Campaign Name"])
+
+nbText: """
+Books had a campaign at the very end of the year:
+"""
+
+tabs """
+campaigns.filter(pl.col("Product Type") == "Books").collect()
+""":
+  nbCode:
+    nbShow campaigns.filter(col("Product Type") == "Books").collect
+
+nbText: """
+and only a few book sales came after it, before the data ends:
+"""
+
+nanuq """
+Python turns the string into a datetime literal with `pl.lit(...).str.to_datetime()`;
+in Nim it is a std/times `DateTime`, which Nanuq compares with the column directly.
+"""
+
+tabs """
+(
+    transactions.filter(
+        (pl.col("Product Type") == "Books")
+        & (
+            pl.col("Sale Date")
+            > pl.lit("2023-12-31 21:00:00").str.to_datetime()
+        )
+    ).collect()
+)
+""":
+  nbCode:
+    import std/times
+    nbShow transactions.filter(
+      (col("Product Type") == "Books") and
+      (col("Sale Date") > dateTime(2023, mDec, 31, 21, zone = utc()))).collect
 
 nbText: """
 ## Vertical and horizontal concatenation

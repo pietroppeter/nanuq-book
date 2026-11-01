@@ -51,6 +51,7 @@ var book = initBookWithToc:
     entry("Reshaping", "reshaping")
   section("Polars Cookbook", "polars-cookbook/index.md"):
     entry("Getting started", "getting_started")
+    entry("Data transformation techniques", "transformations")
     entry("Handling missing values", "missing_values")
     entry("String manipulations", "string_manipulations")
     entry("Debugging chained operations", "debugging_chains")

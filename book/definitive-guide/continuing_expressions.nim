@@ -479,8 +479,8 @@ tabs """
 """:
   nbCode:
     nbShow newDataFrame(series("cluster", ["a", "a", "b", "b"]), series("x", [1, 3, 3, 7]))
-      .groupBy("cluster")
-      .agg(col.x.mean.alias("mean"))
+      .groupBy(col.cluster)
+      .agg(col.x.mean.alias("mean")).collect
 
 nbText: """
 ### Operations that are quantifiers

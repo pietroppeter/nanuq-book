@@ -230,10 +230,10 @@ df_left = pl.DataFrame({"int_id": [10, 5], "value": ["b", "a"]})
 df_right = pl.DataFrame({"int_id": [4, 7, 12], "value": [1, 2, 3]})
 """:
   nbCode:
-    var dfLeft = newDataFrame:
+    var asofLeft = newDataFrame:
       int_id: [10, 5]
       value: ["b", "a"]
-    let dfRight = newDataFrame:
+    let asofRight = newDataFrame:
       int_id: [4, 7, 12]
       value: [1, 2, 3]
 
@@ -255,9 +255,9 @@ df_right = df_right
 df_left.join_asof(df_right, on="int_id")
 """:
   nbCode:
-    dfLeft = dfLeft.sort("int_id")
+    asofLeft = asofLeft.sort("int_id")
 
-    nbShow dfLeft.joinAsof(dfRight, on = "int_id")
+    nbShow asofLeft.joinAsof(asofRight, on = "int_id")
 
 nbText: """
 The key column appears once, with the left values. With `coalesce=False` the right key is
@@ -272,7 +272,7 @@ df_left.join_asof(
 )
 """:
   nbCode:
-    nbShow dfLeft.joinAsof(dfRight, on = "int_id", coalesce = false)
+    nbShow asofLeft.joinAsof(asofRight, on = "int_id", coalesce = false)
 
 nbText: """
 When the keys have different names, use `left_on` and `right_on`:
@@ -286,7 +286,7 @@ df_left.join_asof(
 )
 """:
   nbCode:
-    nbShow dfLeft.joinAsof(dfRight.rename({"int_id": "int_id_right"}),
+    nbShow asofLeft.joinAsof(asofRight.rename({"int_id": "int_id_right"}),
                            leftOn = "int_id", rightOn = "int_id_right")
 
 nbText: """
@@ -303,8 +303,8 @@ print(df_left)
 print(df_right)
 """:
   nbCode:
-    echo dfLeft
-    echo dfRight
+    echo asofLeft
+    echo asofRight
 
 nanuq """
 In Nanuq the strategy is a value of the enum `AsofStrategy`: `Backward`, `Forward` or
@@ -321,7 +321,7 @@ df_left.join_asof(
 )
 """:
   nbCode:
-    nbShow dfLeft.joinAsof(dfRight, on = "int_id", tolerance = 3, strategy = Backward)
+    nbShow asofLeft.joinAsof(asofRight, on = "int_id", tolerance = 3, strategy = Backward)
 
 tabs """
 df_left.join_asof(
@@ -332,7 +332,7 @@ df_left.join_asof(
 )
 """:
   nbCode:
-    nbShow dfLeft.joinAsof(dfRight, on = "int_id", tolerance = 3, strategy = Forward)
+    nbShow asofLeft.joinAsof(asofRight, on = "int_id", tolerance = 3, strategy = Forward)
 
 tabs """
 df_left.join_asof(
@@ -343,7 +343,7 @@ df_left.join_asof(
 )
 """:
   nbCode:
-    nbShow dfLeft.joinAsof(dfRight, on = "int_id", tolerance = 3, strategy = Nearest)
+    nbShow asofLeft.joinAsof(asofRight, on = "int_id", tolerance = 3, strategy = Nearest)
 
 nanuq """
 The book's “Additional fine-tuning” covers `allow_exact_matches` and `check_sortedness`;
@@ -452,9 +452,9 @@ tabs """
 )
 """:
   nbCode:
-    nbShow salesWithCampaignDf.groupBy("Product Type", "Campaign Name")
-      .agg(col("Quantity").mean)
-      .sort("Product Type", "Campaign Name")
+    nbShow salesWithCampaignDf.groupBy(col("Product Type"), col("Campaign Name"))
+      .agg(col("Quantity").mean).collect
+      .sort(["Product Type", "Campaign Name"])
 
 nbText: """
 Books had a campaign at the very end of the year:

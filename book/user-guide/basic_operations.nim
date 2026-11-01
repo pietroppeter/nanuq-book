@@ -168,7 +168,7 @@ by 0.9%:
 nanuq """
 The original draws its 100,000 integers with numpy. Here both sides draw them with
 Polars' `sample` (with replacement, from the numbers below 100,000) and the same seed, so
-they count the same numbers.
+they count the same numbers. On these, the estimate is off by 0.6%.
 """
 
 tabs """

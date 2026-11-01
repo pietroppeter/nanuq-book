@@ -219,7 +219,8 @@ yourself as a group-by with one filtered aggregation per value:
 """
 
 nanuq """
-Python builds the aggregations with a generator; Nim with `collect` from std/sugar. The
+Python builds the aggregations with a generator; Nim with `collect` from std/sugar
+(written `sugar.collect`, since a LazyFrame has a `collect` too). The
 aggregation function is a Nim proc. Nanuq's lazy `pivot` also takes the expected values,
 as a frame: `lf.pivot(on = "col2", onColumns = newDataFrame(series("col2", ["x", "y"])),
 index = "col1", values = "col3", aggregateFunction = element().tanh.mean)`.
@@ -257,9 +258,10 @@ lf.group_by(index).agg(
     let uniqueColumnValues = ["x", "y"]
     proc aggregateFunction(c: Expr): Expr = c.tanh.mean
 
-    nbShow lf.groupBy([index]).agg(collect(
+    let aggs = sugar.collect:
       for value in uniqueColumnValues:
-        aggregateFunction(values.filter(on == value)).alias(value))).collect
+        aggregateFunction(values.filter(on == value)).alias(value)
+    nbShow lf.groupBy(index).agg(aggs).collect
 
 nbText: """
 ## Unpivot to a longer dataframe
@@ -340,7 +342,9 @@ names can be kept in a column of their own, and the new columns can be named:
 """
 
 nanuq """
-Python passes the new names as a generator; Nim as a seq.
+Python passes the new names as a generator, made from the four column names: Polars
+takes only the three it needs, one per row. Nanuq takes a seq with exactly one name per
+row.
 """
 
 tabs """
@@ -353,8 +357,8 @@ grades_wide.transpose(
 )
 """:
   nbCode:
-    let reportColumns = collect:
-      for i, _ in gradesWide.columns: "report_" & $(i + 1)
+    let reportColumns = sugar.collect:
+      for i in 0 ..< gradesWide.height: "report_" & $(i + 1)
 
     nbShow gradesWide.transpose(
       includeHeader = true,

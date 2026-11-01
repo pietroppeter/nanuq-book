@@ -63,9 +63,18 @@ jobs:
           nim-version: "2.2.4"
           repo-token: ${{ secrets.GITHUB_TOKEN }}
       # libpcre3 for nimib's markdown (the runner already has strace, which bookbuild.nim
-      # uses to record the files each chapter reads). The runner's package index usually
-      # has it; refresh the index only if not.
-      - run: sudo apt-get install -y --no-install-recommends libpcre3 || (sudo apt-get update && sudo apt-get install -y --no-install-recommends libpcre3)
+      # uses to record the files each chapter reads). Its .deb is cached: the Ubuntu
+      # mirror alone took from 6 s to 60 s per run.
+      - uses: actions/cache@v4
+        with:
+          path: ~/debs
+          key: libpcre3-ubuntu-24.04
+      - run: |
+          if ! ls ~/debs/libpcre3_*.deb > /dev/null 2>&1; then
+            mkdir -p ~/debs && cd ~/debs
+            apt-get download libpcre3 || (sudo apt-get update && apt-get download libpcre3)
+          fi
+          sudo dpkg -i ~/debs/libpcre3_*.deb
       # Nim packages, from the cache (nimble install then only checks them)
       - uses: actions/cache@v4
         with:

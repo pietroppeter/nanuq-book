@@ -4,8 +4,7 @@ bookInit()
 nbText: "# Filtering and sorting rows"
 
 attribution definitiveGuide(11, "Filtering and Sorting Rows",
-  "Data is read from `data/definitive-guide/`. Left out: sorting nested data (lists and " &
-  "structs), which Nanuq does not have yet. The sample uses a seed, so that both sides " &
+  "Data is read from `data/definitive-guide/`. The sample uses a seed, so that both sides " &
   "pick the same rows.")
 
 nbText: """
@@ -97,10 +96,85 @@ tools.sort(pl.col("rpm") / pl.col("price"))
   nbCode:
     nbShow tools.sort([col.rpm / col.price])
 
-nanuq """
-The book goes on to sort lists and structs, and a group-by that collects each brand's tools
-into a list of structs. Nanuq has no nested types yet, so those examples are left out.
+nbText: """
+### Sorting nested data types
+
+Lists sort value by value, like words letter by letter:
 """
+
+tabs """
+lists = pl.DataFrame({"lists": [[2, 2], [2, 1, 3], [1]]})
+lists.sort("lists")
+""":
+  nbCode:
+    let lists = newDataFrame:
+      lists: [@[2, 2], @[2, 1, 3], @[1]]
+    nbShow lists.sort("lists")
+
+nbText: "Structs sort field by field:"
+
+tabs """
+structs = pl.DataFrame(
+    {
+        "structs": [
+            {"a": 1, "b": 2, "c": 3},
+            {"a": 1, "b": 3, "c": 1},
+            {"a": 1, "b": 1, "c": 2},
+        ]
+    }
+)
+structs.sort("structs")
+""":
+  nbCode:
+    let structs = newDataFrame:
+      structs: [(a: 1, b: 2, c: 3), (a: 1, b: 3, c: 1), (a: 1, b: 1, c: 2)]
+    nbShow structs.sort("structs")
+
+nbText: "A group-by can collect each brand's tools into a list of structs:"
+
+tabs """
+tools_collection = tools.group_by("brand").agg(collection=pl.struct(pl.all()))
+tools_collection
+""":
+  nbCode:
+    let toolsCollection = tools.groupBy("brand").agg(asStruct(all()).alias("collection"))
+    nbShow toolsCollection
+
+nbText: "To sort by such a column, compute a key from it, such as the length of each list:"
+
+tabs """
+tools_collection.sort(pl.col("collection").list.len(), descending=True)
+""":
+  nbCode:
+    nbShow toolsCollection.sort([col.collection.list.len], descending = [true])
+
+tabs """
+tools_collection.sort(
+    pl.col("collection")
+    .list.eval(pl.element().struct.field("price"))
+    .list.mean()
+)
+""":
+  nbCode:
+    nbShow toolsCollection.sort([
+      col.collection
+        .list.eval(element().struct.field("price"))
+        .list.mean])
+
+tabs """
+tools_collection.with_columns(
+    mean_price=pl.col("collection")
+    .list.eval(pl.element().struct.field("price"))
+    .list.mean()
+).sort("mean_price")
+""":
+  nbCode:
+    nbShow toolsCollection.withColumns(
+      col.collection
+        .list.eval(element().struct.field("price"))
+        .list.mean
+        .alias("mean_price")
+    ).sort("mean_price")
 
 nbText: """
 ## Related row operations

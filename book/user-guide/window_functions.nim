@@ -4,8 +4,8 @@ bookInit()
 nbText: "# Window functions"
 
 attribution userGuide("Window functions", "expressions/window-functions",
-  "The data is read from `data/polars/pokemon.csv`. The examples with `explode` and the " &
-  "`mapping_strategy` parameter run in Python only, since Nanuq does not have them yet. " &
+  "The data is read from `data/polars/pokemon.csv`. The examples with the " &
+  "`mapping_strategy` parameter run in Python only, since Nanuq does not have it yet. " &
   "The diagrams are left out.")
 
 nbText: """
@@ -123,9 +123,14 @@ In general, the results you get with the function `over` can also be achieved wi
 call to the function `explode`, although the rows would be in a different order:
 """
 
-python """
+nanuq """
+The Python side adds `maintain_order=True`, so that its groups come in the same order as
+Nanuq's, which always keeps them in the order they are first seen.
+"""
+
+tabs """
 result = (
-    pokemon.group_by("Type 1")
+    pokemon.group_by("Type 1", maintain_order=True)
     .agg(
         pl.col("Name"),
         pl.col("Speed").rank("dense", descending=True).alias("Speed rank"),
@@ -135,11 +140,14 @@ result = (
 )
 
 result
-"""
-
-nanuq """
-This one runs in Python only: Nanuq has no list columns yet, so no `explode`.
-"""
+""":
+  nbCode:
+    nbShow pokemon.groupBy("Type 1")
+      .agg(
+        col.Name,
+        col("Speed").rank(Dense, descending = true).alias("Speed rank"))
+      .select(col.Name, col("Type 1"), col("Speed rank"))
+      .explode(["Name", "Speed rank"])
 
 nbText: """
 This shows that, usually, `group_by` and `over` produce results of different shapes:

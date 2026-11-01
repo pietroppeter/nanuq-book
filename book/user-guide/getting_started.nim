@@ -4,9 +4,8 @@ bookInit()
 nbText: "# Getting started"
 
 attribution userGuide("Getting started", "getting-started",
-  "Left out: the installation instructions (see the Nanuq README instead) and the " &
-  "“more complex query”, which splits names into lists and aggregates into lists, and " &
-  "Nanuq has no lists yet. The CSV file is written to `data/output.csv`.")
+  "Left out: the installation instructions (see the Nanuq README instead). The CSV " &
+  "file is written to `data/output.csv`.")
 
 nbText: """
 This chapter is here to help you get started with Polars. It covers all the fundamental
@@ -279,10 +278,41 @@ Contexts and the expressions within can be chained to create more complex querie
 to your needs.
 """
 
+tabs """
+result = (
+    df.with_columns(
+        (pl.col("birthdate").dt.year() // 10 * 10).alias("decade"),
+        pl.col("name").str.split(by=" ").list.first(),
+    )
+    .select(
+        pl.all().exclude("birthdate"),
+    )
+    .group_by(
+        pl.col("decade"),
+        maintain_order=True,
+    )
+    .agg(
+        pl.col("name"),
+        pl.col("weight", "height").mean().round(2).name.prefix("avg_"),
+    )
+)
+result
+""":
+  nbCode:
+    nbShow df.withColumns(
+        (col.birthdate.dt.year div 10 * 10).alias("decade"),
+        col.name.str.split(" ").list.first)
+      .select(
+        all().exclude("birthdate"))
+      .groupBy(
+        col.decade)
+      .agg(
+        col.name,
+        col("weight", "height").mean.round(2).name.prefix("avg_"))
+
 nanuq """
-The guide's example here keeps the first name with `str.split(by=" ").list.first()` and
-collects the names of each decade into a list. Nanuq has no lists yet, so the example is
-left out.
+Nanuq's `groupBy` always keeps the groups in the order they are first seen, so it needs
+no `maintain_order`.
 """
 
 nbText: """

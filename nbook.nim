@@ -12,6 +12,8 @@ var book = initBookWithToc:
     entry("Missing data", "missing_data")
     entry("Strings", "strings")
     entry("Categorical data and enums", "categoricals")
+    entry("Lists and arrays", "lists_and_arrays")
+    entry("Structs", "structs")
     entry("Window functions", "window_functions")
     entry("Time series: parsing", "time_series_parsing")
     entry("Time series: filtering", "time_series_filtering")
@@ -24,6 +26,7 @@ var book = initBookWithToc:
     entry("CSV", "csv")
     entry("Parquet", "parquet")
   section("Python Polars: The Definitive Guide", "definitive-guide/index.md"):
+    entry("Data structures and data types", "data_structures")
     entry("Beginning expressions", "beginning_expressions")
     entry("Continuing expressions", "continuing_expressions")
     entry("Selecting and creating columns", "selecting_and_creating")

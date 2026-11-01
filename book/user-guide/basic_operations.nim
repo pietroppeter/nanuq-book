@@ -6,9 +6,7 @@ nbText: "# Basic operations"
 attribution userGuide("Basic operations", "expressions/basic-operations",
   "Left out: the bitwise operators and the named-function forms of the operators (a " &
   "Python workaround). The 100,000 random integers are drawn with Polars' seeded " &
-  "`sample` instead of numpy, so both sides get the same ones; `value_counts` on an " &
-  "expression returns structs, which Nanuq does not have yet, so it runs in Python " &
-  "only and the Nim side shows the frame version. The random column is numpy's, seeded " &
+  "`sample` instead of numpy, so both sides get the same ones. The random column is numpy's, seeded " &
   "as in the original; the Nim side writes the same five numbers out.")
 
 nbText: """
@@ -196,29 +194,18 @@ You can get more information about the unique values and their counts with the f
 `value_counts`, that Polars also provides:
 """
 
-nanuq """
-`value_counts` on an expression returns a column of structs, and Nanuq has no structs
-yet, so this cell runs in Python only. Nanuq has `valueCounts` on a dataframe or a Series
-instead, which returns the values and their counts as a dataframe, like Python's
-`Series.value_counts` (shown after it).
-"""
-
-python """
+tabs """
 df.select(
     pl.col("names").value_counts().alias("value_counts"),
 )
-"""
-
-tabs """
-df["names"].value_counts(sort=True)
 """:
   nbCode:
-    let nameCounts = df["names"].valueCounts(sort = true)
-    nbShow nameCounts
+    nbShow df.select(
+      col.names.valueCounts.alias("value_counts"))
 
 nbText: """
 The function `value_counts` returns the results in
-[structs, a data type that we will explore in a later section](https://docs.pola.rs/user-guide/expressions/structs/).
+[structs, a data type that we will explore in a later section](structs.html).
 
 Alternatively, if you only need a series with the unique values or a series with the
 unique counts, they are one function away:

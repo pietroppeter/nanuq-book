@@ -4,8 +4,8 @@ bookInit()
 nbText: "# Reshaping"
 
 attribution definitiveGuide(15, "Reshaping",
-  "Left out: the section on exploding, which needs list columns (Nanuq has none yet), " &
-  "and `partition_by(as_dict=True)`. The frames of `partition_by` are printed one by one " &
+  "Left out: " &
+  "`partition_by(as_dict=True)`. The frames of `partition_by` are printed one by one " &
   "on both sides.")
 
 nbText: """
@@ -365,10 +365,118 @@ grades_wide.transpose(
       headerName = "original_headers",
       columnNames = reportColumns)
 
-nanuq """
-The book's next section, “Exploding”, turns list columns into rows with `explode`. Nanuq
-has no list columns yet, so it is left out.
+nbText: """
+## Exploding
+
+A list column can be turned into rows, one per value, with the other columns repeated:
 """
+
+tabs """
+grades_nested = pl.DataFrame(
+    {
+        "student": ["Jeroen", "Thijs", "Ritchie"],
+        "math": [[85, 90, 88], [78, 82, 80], [92, 85, 87]],
+    }
+)
+
+grades_nested
+""":
+  nbCode:
+    var gradesNested = newDataFrame:
+      student: ["Jeroen", "Thijs", "Ritchie"]
+      math: [@[85, 90, 88], @[78, 82, 80], @[92, 85, 87]]
+
+    nbShow gradesNested
+
+tabs """
+grades_nested.explode("math")
+""":
+  nbCode:
+    nbShow gradesNested.explode("math")
+
+nbText: "Several list columns explode together only when their lists have the same lengths, row by row:"
+
+tabs """
+grades_nested = pl.DataFrame(
+    {
+        "student": ["Jeroen", "Thijs", "Ritchie"],
+        "math": [[85, 90, 88], [78, 82, 80], [92, 85, 87]],
+        "science": [[85, 90, 88], [78, 82], [92, 85, 87]],
+        "history": [[85, 90, 88], [78, 82], [92, 85, 87]],
+    }
+)
+
+grades_nested
+""":
+  nbCode:
+    gradesNested = newDataFrame:
+      student: ["Jeroen", "Thijs", "Ritchie"]
+      math: [@[85, 90, 88], @[78, 82, 80], @[92, 85, 87]]
+      science: [@[85, 90, 88], @[78, 82], @[92, 85, 87]]
+      history: [@[85, 90, 88], @[78, 82], @[92, 85, 87]]
+
+    nbShow gradesNested
+
+tabs """
+# This raises a ShapeError:
+# grades_nested.explode("math", "science", "history")
+""":
+  nbCode:
+    # This raises a ShapeError:
+    # gradesNested.explode("math", "science", "history")
+    doAssertRaises(ShapeError):
+      discard gradesNested.explode(["math", "science", "history"])
+
+nbText: "Unpivoting first gives one list per row, which then explodes on its own:"
+
+tabs """
+grades_nested_long = grades_nested.unpivot(
+    index="student", variable_name="subject", value_name="grade"
+)
+
+grades_nested_long
+""":
+  nbCode:
+    let gradesNestedLong = gradesNested.unpivot(
+      index = ["student"], variableName = "subject", valueName = "grade")
+
+    nbShow gradesNestedLong
+
+tabs """
+grades_nested_long.explode("grade")
+""":
+  nbCode:
+    nbShow gradesNestedLong.explode("grade")
+
+nbText: "Lists of lists explode one level at a time:"
+
+tabs """
+nested_lists = pl.DataFrame(
+    {
+        "id": [1, 2],
+        "nested_value": [[["a", "b"]], [["c"], ["d", "e"]]],
+    },
+    strict=False,
+)
+nested_lists
+""":
+  nbCode:
+    let nestedLists = newDataFrame:
+      id: [1, 2]
+      nested_value: [@[@["a", "b"]], @[@["c"], @["d", "e"]]]
+    nbShow nestedLists
+
+tabs """
+nested_lists.explode("nested_value")
+""":
+  nbCode:
+    nbShow nestedLists.explode("nested_value")
+
+tabs """
+nested_lists.explode("nested_value").explode("nested_value")
+""":
+  nbCode:
+    nbShow nestedLists.explode("nested_value").explode("nested_value")
 
 nbText: """
 ## Partition into multiple dataframes

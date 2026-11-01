@@ -727,8 +727,21 @@ tabs """
     nbShow numbers.select(col.x.sort.searchSorted(42).alias("rle"))
 
 nanuq """
-The chapter ends with series-wise operations that extend, `explode`, which needs list
-columns: left out.
+The chapter ends with series-wise operations that extend: `explode` turns each list into
+rows.
 """
+
+tabs """
+(
+    pl.DataFrame(
+        {
+            "x": [["a", "b"], ["c", "d"]],
+        }
+    ).select(explode=pl.col("x").explode())
+)
+""":
+  nbCode:
+    nbShow newDataFrame(series("x", [@["a", "b"], @["c", "d"]]))
+      .select(col.x.explode.alias("explode"))
 
 bookSave()

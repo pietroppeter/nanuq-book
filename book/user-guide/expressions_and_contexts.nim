@@ -5,9 +5,7 @@ nbText: "# Expressions and contexts"
 
 attribution userGuide("Expressions and contexts", "concepts/expressions-and-contexts",
   "Nanuq has no dates yet, so the people in the example dataframe have a birth year " &
-  "instead of a birthdate, on both sides, and the code that used the date follows. The two " &
-  "group-bys that collect names into lists run in Python only (Nanuq has no list columns " &
-  "yet). Python's results are shown instead of printed.")
+  "instead of a birthdate, on both sides, and the code that used the date follows. Python's results are shown instead of printed.")
 
 nbText: """
 Polars has developed its own Domain Specific Language (DSL) for transforming data. The
@@ -218,16 +216,18 @@ When using the context `group_by`, you can use an expression to compute the grou
 dynamically:
 """
 
-python """
+tabs """
 df.group_by(
     (pl.col("birth_year") // 10 * 10).alias("decade"),
 ).agg(pl.col("name"))
-"""
+""":
+  nbCode:
+    nbShow df.groupBy(
+      (col.birth_year div 10 * 10).alias("decade")
+    ).agg(col.name)
 
 nanuq """
-This one and the next run in Python only: they collect the names of each group in a list
-column, and Nanuq has no list columns yet. In the original the decade is
-`pl.col("birthdate").dt.year() // 10 * 10`.
+In the original the decade is `pl.col("birthdate").dt.year() // 10 * 10`.
 """
 
 nbText: """
@@ -241,12 +241,17 @@ group by a combination of decade of birth and whether the person is shorter than
 metres:
 """
 
-python """
+tabs """
 df.group_by(
     (pl.col("birth_year") // 10 * 10).alias("decade"),
     (pl.col("height") < 1.7).alias("short?"),
 ).agg(pl.col("name"))
-"""
+""":
+  nbCode:
+    nbShow df.groupBy(
+      (col.birth_year div 10 * 10).alias("decade"),
+      (col.height < 1.7).alias("short?")
+    ).agg(col.name)
 
 nbText: """
 The resulting dataframe, after applying aggregating expressions, contains one column per

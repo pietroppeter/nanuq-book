@@ -4,8 +4,7 @@ bookInit()
 nbText: "# Beginning expressions"
 
 attribution definitiveGuide(7, "Beginning Expressions",
-  "Data is read from `data/definitive-guide/`. Left out: the group-by on the last word of " &
-  "`origin` (it needs `str.split` and lists), `meta.has_multiple_outputs`, top-level " &
+  "Data is read from `data/definitive-guide/`. Left out: `meta.has_multiple_outputs`, top-level " &
   "`pl.select`, list literals, `repeat`/`zeros`/`ones`, the range functions, the `name` " &
   "methods other than `suffix`/`prefix`, and Series arithmetic (`fruit[\"weight\"] > 1000`).")
 
@@ -98,11 +97,18 @@ fruit.filter(
   nbCode:
     nbShow fruit.filter(col.weight > 1000 and col.is_round)
 
-nanuq """
-The book next groups the fruit by the last word of their origin
-(`pl.col("origin").str.split(" ").list.last()`). Nanuq has no lists yet, so that example is
-left out.
-"""
+nbText: "Grouping takes expressions too, here the last word of the fruit's origin:"
+
+tabs """
+fruit.group_by(pl.col("origin").str.split(" ").list.last()).agg(
+    pl.len(),
+    average_weight=pl.col("weight").mean()
+)
+""":
+  nbCode:
+    nbShow fruit.groupBy(col.origin.str.split(" ").list.last).agg(
+      col.weight.len.alias("len"),
+      col.weight.mean.alias("average_weight"))
 
 nbText: """
 ### Sorting rows with expressions

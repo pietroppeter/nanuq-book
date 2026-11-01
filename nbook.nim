@@ -22,6 +22,7 @@ var book = initBookWithToc:
     entry("Parquet", "parquet")
   section("Python Polars: The Definitive Guide", "definitive-guide/index.md"):
     entry("Beginning expressions", "beginning_expressions")
+    entry("Selecting and creating columns", "selecting_and_creating")
     entry("Filtering and sorting rows", "filtering_and_sorting")
     entry("Joining and concatenating", "joining_and_concatenating")
   section("Polars Cookbook", "polars-cookbook/index.md"):

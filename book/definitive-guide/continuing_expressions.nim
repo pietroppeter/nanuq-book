@@ -7,10 +7,8 @@ attribution definitiveGuide(8, "Continuing Expressions",
   "Data is read from `data/definitive-guide/` (the NVIDIA prices are the book's " &
   "`stock/nvda/2023.csv`). The book draws random numbers with numpy; here both sides draw " &
   "them with Polars' seeded `sample`, or use the penguins, so that they get the same ones. " &
-  "Left out: the operations that need list or struct columns (`repeat_by`, `explode`, " &
-  "`implode`, `reshape`, `rle`, `value_counts`), the timing cells, the plot, and `hash`, " &
-  "`extend_constant`, `shuffle`, `sample` on an expression, `upper_bound` and `arg_true`, " &
-  "which Nanuq does not have yet.")
+  "`sample` on an expression gets a seed on both sides. Left out: the timing cells and " &
+  "the plot.")
 
 nbText: """
 The previous chapter introduced expressions; this one goes through the many methods an
@@ -85,11 +83,34 @@ penguins.select(pl.col("island").unique())
   nbCode:
     nbShow penguins.select(col.island.unique)
 
-nanuq """
-The book's “Example D”, operations that make a column longer, repeats each species with
-`repeat_by` (a list per row), `explode`s the lists and adds a value with
-`extend_constant`. Nanuq has none of them yet, so it is left out.
+nbText: """
+### Example D: operations that extend
+
+A few operations make a column longer: here each species is repeated 3,000 times, as a
+list per row that `explode` turns into rows, and `extend_constant` adds one more value.
 """
+
+nanuq """
+The Python side adds `maintain_order=True` to `unique`, so that the 9,001 rows come in
+the same order on both sides (only the first and last are shown).
+"""
+
+tabs """
+penguins.select(
+    pl.col("species")
+    .unique(maintain_order=True)
+    .repeat_by(3000)
+    .explode()
+    .extend_constant("Saiyan", n=1)
+)
+""":
+  nbCode:
+    nbShow penguins.select(
+      col.species
+        .unique(maintainOrder = true)
+        .repeatBy(3000)
+        .explode
+        .extendConstant("Saiyan", n = 1))
 
 nbText: """
 ## Element-wise operations
@@ -249,13 +270,14 @@ nbText: """
 """
 
 nanuq """
-The book also shows `hash` and `repeat_by` here; Nanuq has neither yet (`repeat_by`
-returns lists), so this cell keeps `replace`. Nim writes the mapping as `{"a": "b"}`.
+Nim writes the mapping of `replace` as `{"a": "b"}`.
 """
 
 tabs """
 (
     pl.DataFrame({"x": ["here", "there", "their", "they're"]}).with_columns(
+        hash=pl.col("x").hash(seed=1337),
+        repeat_by=pl.col("x").repeat_by(3),
         replace=pl.col("x").replace(
             {
                 "here": "there",
@@ -267,6 +289,8 @@ tabs """
 """:
   nbCode:
     nbShow newDataFrame(series("x", ["here", "there", "their", "they're"])).withColumns(
+      col.x.hash(seed = 1337).alias("hash"),
+      col.x.repeatBy(3).alias("repeat_by"),
       col.x.replace({"here": "there", "they're": "they are"}).alias("replace"))
 
 nbText: """
@@ -402,11 +426,6 @@ stock
 
 nbText: "### Operations that sort"
 
-nanuq """
-The book also shuffles the column with `shuffle(seed=7)`; Nanuq has no `shuffle` on an
-expression yet, so that column is left out.
-"""
-
 tabs """
 (
     pl.DataFrame(
@@ -416,6 +435,7 @@ tabs """
         }
     ).with_columns(
         arg_sort=pl.col("x").arg_sort(),
+        shuffle=pl.col("x").shuffle(seed=7),
         sort=pl.col("x").sort(nulls_last=True),
         sort_by=pl.col("x").sort_by("y"),
         reverse=pl.col("x").reverse(),
@@ -429,6 +449,7 @@ tabs """
       series("y", ["D", "I", "S", "C", "O"])
     ).withColumns(
       col.x.argSort.alias("arg_sort"),
+      col.x.shuffle(seed = 7).alias("shuffle"),
       col.x.sort(nullsLast = true).alias("sort"),
       col.x.sortBy("y").alias("sort_by"),
       col.x.reverse.alias("reverse"),
@@ -598,35 +619,29 @@ approximation is several times faster. (Timings are left out of this book's buil
 ### Other operations
 """
 
-nanuq """
-Nanuq has no `get` on an expression yet: `gather([403])` takes the same value, as a
-column of one row. `implode` (a list) and `upper_bound` are left out.
-"""
-
 tabs """
 df_ints.select(
     arg_min=pl.col("x").arg_min(),
     first=pl.col("x").first(),
-    get=pl.col("x").gather([403]),
+    get=pl.col("x").get(403),
+    implode=pl.col("x").implode(),
     last=pl.col("x").last(),
+    upper_bound=pl.col("x").upper_bound(),
 )
 """:
   nbCode:
     nbShow dfInts.select(
       col.x.argMin.alias("arg_min"),
       col.x.first.alias("first"),
-      col.x.gather([403]).alias("get"),
-      col.x.last.alias("last"))
+      col.x.get(403).alias("get"),
+      col.x.implode.alias("implode"),
+      col.x.last.alias("last"),
+      col.x.upperBound.alias("upper_bound"))
 
 nbText: """
 ## Series-wise operations that summarize to one or more
 
 ### Operations related to unique values
-"""
-
-nanuq """
-The book adds `value_counts`, which returns structs; Nanuq has no structs yet, so that
-column is left out.
 """
 
 tabs """
@@ -635,6 +650,7 @@ tabs """
         arg_unique=pl.col("x").arg_unique(),
         unique=pl.col("x").unique(maintain_order=True),
         unique_counts=pl.col("x").unique_counts(),
+        value_counts=pl.col("x").value_counts(sort=True),
     )
 )
 """:
@@ -642,19 +658,21 @@ tabs """
     nbShow newDataFrame(series("x", ["A", "C", "D", "C"])).select(
       col.x.argUnique.alias("arg_unique"),
       col.x.unique(maintainOrder = true).alias("unique"),
-      col.x.uniqueCounts.alias("unique_counts"))
+      col.x.uniqueCounts.alias("unique_counts"),
+      col.x.valueCounts(sort = true).alias("value_counts"))
 
 nbText: "### Operations that select"
 
 nanuq """
-The book also takes a random `sample(7)` of the column; Nanuq has `sample` on frames only,
-so that column is left out.
+The book's `sample(7)` has no seed, so it picks other values on every run; both sides
+give it `seed=42`, to show the same ones.
 """
 
 tabs """
 df_ints.select(
     bottom_k=pl.col("x").bottom_k(7),
     head=pl.col("x").head(7),
+    sample=pl.col("x").sample(7, seed=42),
     slice=pl.col("x").slice(400, 7),
     gather=pl.col("x").gather([1, 1, 2, 3, 5, 8, 13]),
     gather_every=pl.col("x").gather_every(247),
@@ -665,6 +683,7 @@ df_ints.select(
     nbShow dfInts.select(
       col.x.bottomK(7).alias("bottom_k"),
       col.x.head(7).alias("head"),
+      col.x.sample(7, seed = some(42)).alias("sample"),
       col.x.slice(400, 7).alias("slice"),
       col.x.gather([1, 1, 2, 3, 5, 8, 13]).alias("gather"),
       col.x.gatherEvery(247).alias("gather_every"),
@@ -692,16 +711,20 @@ nbText: """
 `mode` gives the most common values (more than one when they tie):
 """
 
-nanuq """
-The book first shows `arg_true`, the positions where a condition holds, which Nanuq does
-not have yet. It can be written as a filter on the row numbers:
-`intRange(col.x.len, dtype = UInt32).filter(col.x >= 60)`. `reshape` (to arrays) and
-`rle` (structs) are left out.
-"""
-
 tabs """
 numbers = [33, 33, 27, 33, 60, 60, 60, 33, 60]
 
+(
+    pl.DataFrame({"x": numbers}).select(
+        arg_true=(pl.col("x") >= 60).arg_true(),
+    )
+)
+""":
+  nbCode:
+    let numbers = newDataFrame(series("x", [33, 33, 27, 33, 60, 60, 60, 33, 60]))
+    nbShow numbers.select((col.x >= 60).argTrue.alias("arg_true"))
+
+tabs """
 (
     pl.DataFrame({"x": numbers}).select(
         mode=pl.col("x").mode().sort(),
@@ -709,8 +732,31 @@ numbers = [33, 33, 27, 33, 60, 60, 60, 33, 60]
 )
 """:
   nbCode:
-    let numbers = newDataFrame(series("x", [33, 33, 27, 33, 60, 60, 60, 33, 60]))
     nbShow numbers.select(col.x.mode.sort.alias("mode"))
+
+nbText: "`reshape` turns the column into arrays, here three of three values:"
+
+tabs """
+(
+    pl.DataFrame({"x": numbers}).select(
+        reshape=pl.col("x").reshape((3, 3)),
+    )
+)
+""":
+  nbCode:
+    nbShow numbers.select(col.x.reshape([3, 3]).alias("reshape"))
+
+nbText: "`rle` gives the runs of equal values, as structs of a length and a value:"
+
+tabs """
+(
+    pl.DataFrame({"x": numbers}).select(
+        rle=pl.col("x").rle(),
+    )
+)
+""":
+  nbCode:
+    nbShow numbers.select(col.x.rle.alias("rle"))
 
 nbText: """
 `search_sorted` gives the position where a value would go in a sorted column:

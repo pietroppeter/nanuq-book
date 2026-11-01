@@ -47,6 +47,7 @@ var book = initBookWithToc:
     entry("Selecting and creating columns", "selecting_and_creating")
     entry("Filtering and sorting rows", "filtering_and_sorting")
     entry("Textual and temporal data types", "textual_temporal")
+    entry("Summarizing and aggregating", "summarizing_and_aggregating")
     entry("Joining and concatenating", "joining_and_concatenating")
     entry("Reshaping", "reshaping")
   section("Polars Cookbook", "polars-cookbook/index.md"):

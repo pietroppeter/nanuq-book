@@ -91,7 +91,7 @@ q = (
         pl.col("gender"),
         pl.first("last_name"),  # Short for `pl.col("last_name").first()`
     )
-    .sort("len", descending=True)
+    .sort("len", "first_name", descending=[True, False])
     .limit(5)
 )
 
@@ -105,7 +105,7 @@ df
         len(),
         col.gender,
         col.last_name.first)
-      .sort("len", descending = true)
+      .sort(["len", "first_name"], descending = [true, false])
       .limit(5)
 
     var df = q.collect
@@ -113,8 +113,8 @@ df
 
 nanuq """
 Python's `pl.first("last_name")` is short for `pl.col("last_name").first()`; Nanuq has only
-the long form. Ties in `len` (and which last name comes first in a group) depend on the
-order the groups are processed in, so the two tabs can differ in those rows.
+the long form. In this and the other sorted queries both tabs add the group keys as extra
+sort columns: rows that tie on the count would otherwise come out in any order.
 """
 
 nbText: """
@@ -135,7 +135,7 @@ q = (
         (pl.col("party") == "Anti-Administration").sum().alias("anti"),
         (pl.col("party") == "Pro-Administration").sum().alias("pro"),
     )
-    .sort("pro", descending=True)
+    .sort("pro", "state", descending=[True, False])
     .limit(5)
 )
 
@@ -148,7 +148,7 @@ df
       .agg(
         (col.party == "Anti-Administration").sum.alias("anti"),
         (col.party == "Pro-Administration").sum.alias("pro"))
-      .sort("pro", descending = true)
+      .sort(["pro", "state"], descending = [true, false])
       .limit(5)
 
     df = q.collect
@@ -255,7 +255,7 @@ q = (
         (pl.col("party") == "Anti-Administration")
         | (pl.col("party") == "Pro-Administration")
     )
-    .sort("count", descending=True)
+    .sort("count", "state", "party", descending=[True, False, False])
     .limit(5)
 )
 
@@ -269,7 +269,7 @@ df
       .filter(
         col.party == "Anti-Administration" or
         col.party == "Pro-Administration")
-      .sort("count", descending = true)
+      .sort(["count", "state", "party"], descending = [true, false, false])
       .limit(5)
 
     df = q.collect
@@ -289,7 +289,7 @@ q = (
         compute_age().mean().alias("avg age"),
         pl.len().alias("#"),
     )
-    .sort("#", descending=True)
+    .sort("#", "state", "gender", descending=[True, False, False])
     .limit(5)
 )
 
@@ -303,7 +303,7 @@ df
         # The proc `avgAge` is not needed:
         computeAge().mean.alias("avg age"),
         len().alias("#"))
-      .sort("#", descending = true)
+      .sort(["#", "state", "gender"], descending = [true, false, false])
       .limit(5)
 
     df = q.collect

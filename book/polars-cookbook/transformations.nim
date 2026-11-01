@@ -552,7 +552,7 @@ tabs """
         col.Category,
         col.Brand,
         col.Subcategory,
-        col("Sales Amount").mean.over("Category", "Brand").alias("Avg Sales per Cat and Brand"))
+        col("Sales Amount").mean.over(["Category", "Brand"]).alias("Avg Sales per Cat and Brand"))
       .filter(col.Category == "Computers")
       .unique()
       .sort(["Brand", "Subcategory"])

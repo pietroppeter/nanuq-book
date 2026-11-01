@@ -34,7 +34,7 @@ df.head()
     import nanuq
 
     var df = newDataFrame:
-      avg_temp_celsius: [-3.0, nil, 6, -1, NaN, 6, 4, nil, 1, 2, NaN, 7, 9, -2, nil]
+      avg_temp_celsius: [-3.0, nil, 6.0, -1.0, NaN, 6.0, 4.0, nil, 1.0, 2.0, NaN, 7.0, 9.0, -2.0, nil]
     df = df.select(
       dateRange(date(2023, 1, 1), date(2023, 1, 15), "1d").alias("date"),
       col.avg_temp_celsius)

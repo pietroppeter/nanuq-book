@@ -360,7 +360,7 @@ scientists.select(
 """:
   nbCode:
     nbShow scientists.select(
-      concatStr([all()], separator = " ").alias("concat_str"),
+      concatStr([all().toExpr], separator = " ").alias("concat_str"),
       format("{}, {} from {}", col.last_name, col.first_name, col.country).alias("format"))
 
 tabs """

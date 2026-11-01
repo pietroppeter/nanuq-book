@@ -5,8 +5,7 @@ nbText: "# Data structures and data types"
 
 attribution definitiveGuide(4, "Data Structures and Data Types",
   "Data is read from `data/definitive-guide/`. Left out: `show_graph` (it draws the plan " &
-  "with Graphviz; Nanuq has `explain`). The casts with data types or selectors as keys " &
-  "are written as `withColumns` of `cast` expressions.")
+  "with Graphviz; Nanuq has `explain`).")
 
 nbText: """
 Polars has three data structures: the Series, a column of values of one type; the
@@ -200,11 +199,7 @@ tabs """
 missing_df.interpolate()
 """:
   nbCode:
-    nbShow missingDf.withColumns(all().interpolate)
-
-nanuq """
-Nanuq has `interpolate` on expressions only; on all columns it is `all().interpolate`.
-"""
+    nbShow missingDf.interpolate
 
 nbText: """
 ## Data Type Conversion
@@ -264,7 +259,7 @@ tabs """
 data_types_df.cast({pl.Float64: pl.Float32, pl.String: pl.UInt8})
 """:
   nbCode:
-    nbShow dataTypesDf.withColumns(col(Float64).cast(Float32), col(String).cast(UInt8))
+    nbShow dataTypesDf.cast({Float64: Float32, String: UInt8})
 
 tabs """
 import polars.selectors as cs
@@ -272,11 +267,11 @@ import polars.selectors as cs
 data_types_df.cast({cs.numeric(): pl.UInt16})
 """:
   nbCode:
-    nbShow dataTypesDf.withColumns(col(SomeNumber).cast(UInt16))
+    nbShow dataTypesDf.cast({col(SomeNumber): UInt16})
 
 nanuq """
-Nanuq's frame `cast` takes column names (or one type for all columns). With data types or
-selectors as keys, select the columns with `col(<type>)` and cast them in `withColumns`.
+The keys of one mapping are all of a kind: column names, data types, or selectors such as
+`col(SomeNumber)` (Nim's type class for numbers, Python's `cs.numeric()`).
 """
 
 bookSave()

@@ -574,11 +574,10 @@ result = df.select(
 result
 """:
   nbCode:
-    var favs = newDataFrame:
+    let favs = newDataFrame:
       first_last: [["Anne", "Adams"], ["Brandon", "Branson"], ["Camila", "Campbell"],
                    ["Dennis", "Doyle"]]
-      fav_numbers: [[42, 0, 1], [2, 3, 5], [13, 21, 34], [73, 3, 7]]
-    favs = favs.withColumns(col.fav_numbers.cast(Array(Int32, 3)))
+      fav_numbers: [[42'i32, 0, 1], [2'i32, 3, 5], [13'i32, 21, 34], [73'i32, 3, 7]]
 
     nbShow favs.select(
       col.first_last.arr.join(" ").alias("name"),
@@ -588,7 +587,8 @@ result
       col.fav_numbers.arr.contains(3).alias("likes_3"))
 
 nanuq """
-Nim integers are `Int64`; the cast gives the guide's `Array(Int32, 3)`.
+Nim integers are `Int64`; `42'i32` makes the arrays `array[3, int32]`, the guide's
+`Array(Int32, 3)`.
 """
 
 bookSave()

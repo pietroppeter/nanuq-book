@@ -4,10 +4,7 @@ bookInit()
 nbText: "# Time series: grouping"
 
 attribution userGuide("Grouping", "transformations/time-series/rolling",
-  "The data is read from `data/polars/apple_stock.csv`. The column `day/eom` of the " &
-  "month example is a list per month, and Nanuq has no lists yet, so that example runs " &
-  "in Python first and then on both sides without it. Nanuq has no `pl.len()`: the Nim " &
-  "side counts the rows of a group with `len` on a column.")
+  "The data is read from `data/polars/apple_stock.csv`.")
 
 nbText: """
 ## Grouping by fixed windows
@@ -163,13 +160,7 @@ Below we show an example where we use **group_by_dynamic** to compute:
 - the number of days in a month
 """
 
-nanuq """
-The number of days until the end of the month, `day/eom`, keeps three values per month:
-a list column, which Nanuq does not have yet. So the original runs in Python only, and
-then both sides compute the number of days in a month.
-"""
-
-python """
+tabs """
 df = (
     pl.date_range(
         start=date(2021, 1, 1),
@@ -187,29 +178,21 @@ df.group_by_dynamic("time", every="1mo", period="1mo", closed="left").agg(
         "days_in_month"
     ),
 )
-"""
-
-nanuq """
-`dateRange` is an expression, so Nanuq selects it from an empty frame (there is no
-`eager=True`). The window's closed side is a value of the enum `ClosedWindow`.
-"""
-
-tabs """
-df.group_by_dynamic("time", every="1mo", period="1mo", closed="left").agg(
-    ((pl.col("time") - pl.col("time").first()).last().dt.total_days() + 1).alias(
-        "days_in_month"
-    ),
-)
 """:
   nbCode:
     let days = newDataFrame().select(
       dateRange(start = date(2021, 1, 1), stop = date(2021, 12, 31), interval = "1d")
         .alias("time"))
 
-    let daysInMonth = days.groupByDynamic("time", every = "1mo", period = "1mo",
-                                          closed = ClosedWindow.Left).agg(
+    nbShow days.groupByDynamic("time", every = "1mo", period = "1mo",
+                               closed = ClosedWindow.Left).agg(
+      col("time").cumCount.reverse.head(3).alias("day/eom"),
       ((col("time") - col("time").first).last.dt.totalDays + 1).alias("days_in_month"))
-    nbShow daysInMonth
+
+nanuq """
+`dateRange` is an expression, so Nanuq selects it from an empty frame (there is no
+`eager=True`). The window's closed side is a value of the enum `ClosedWindow`.
+"""
 
 nbText: """
 ## Grouping by rolling windows
@@ -289,7 +272,7 @@ df.group_by_dynamic(
       closed = ClosedWindow.Both,
       groupBy = [col("groups")],
       includeBoundaries = true,
-    ).agg(col("time").len.alias("len"))
+    ).agg(len())
     nbShow byHour
 
 bookSave()

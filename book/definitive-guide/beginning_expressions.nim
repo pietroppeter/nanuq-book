@@ -107,7 +107,7 @@ fruit.group_by(pl.col("origin").str.split(" ").list.last()).agg(
 """:
   nbCode:
     nbShow fruit.groupBy(col.origin.str.split(" ").list.last).agg(
-      col.weight.len.alias("len"),
+      len(),
       col.weight.mean.alias("average_weight"))
 
 nbText: """
@@ -178,10 +178,10 @@ tabs """
 fruit.group_by(is_orange).len()
 """:
   nbCode:
-    nbShow fruit.groupBy(isOrange).agg(col.name.len.alias("len"))
+    nbShow fruit.groupBy(isOrange).agg(len())
 
 nanuq """
-Nanuq's group-by has no `len()` shortcut yet: it counts rows with `len` on any column.
+Nanuq's group-by has no `len()` shortcut: `agg(len())` counts the rows of each group.
 """
 
 tabs """

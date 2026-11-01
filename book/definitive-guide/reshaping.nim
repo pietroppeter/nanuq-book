@@ -425,7 +425,7 @@ tabs """
     # This raises a ShapeError:
     # gradesNested.explode("math", "science", "history")
     doAssertRaises(ShapeError):
-      discard gradesNested.explode(["math", "science", "history"])
+      discard gradesNested.explode("math", "science", "history")
 
 nbText: "Unpivoting first gives one list per row, which then explodes on its own:"
 

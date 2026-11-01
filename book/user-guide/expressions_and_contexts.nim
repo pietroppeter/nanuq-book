@@ -275,15 +275,11 @@ df.group_by(
       (col("birth_year") div 10 * 10).alias("decade"),
       (col("height") < 1.7).alias("short?"),
     ).agg(
-      col("name").len.alias("len"),
+      len(),
       col("height").max.alias("tallest"),
       col("weight", "height").mean.name.prefix("avg_"),
     )
     nbShow groups
-
-nanuq """
-Nanuq has no `pl.len()` yet; the length of any column of the group gives the same number.
-"""
 
 nbText: """
 See also `group_by_dynamic` and `rolling` for other grouping contexts.

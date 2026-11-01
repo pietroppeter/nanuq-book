@@ -147,7 +147,7 @@ result
         col.Name,
         col("Speed").rank(Dense, descending = true).alias("Speed rank"))
       .select(col.Name, col("Type 1"), col("Speed rank"))
-      .explode(["Name", "Speed rank"])
+      .explode("Name", "Speed rank")
 
 nbText: """
 This shows that, usually, `group_by` and `over` produce results of different shapes:

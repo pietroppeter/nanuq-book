@@ -187,7 +187,7 @@ result = ratings.filter(pl.struct("Movie", "Theatre").is_duplicated())
 result
 """:
   nbCode:
-    nbShow ratings.filter(asStruct(col("Movie", "Theatre")).isDuplicated)
+    nbShow ratings.filter(asStruct("Movie", "Theatre").isDuplicated)
 
 nanuq """
 `pl.struct` is `asStruct` (the name of the Rust function): `struct` is taken by the
@@ -217,11 +217,11 @@ result
 """:
   nbCode:
     nbShow ratings.withColumns(
-      asStruct(col("Count", "Avg_Rating"))
+      asStruct("Count", "Avg_Rating")
         .rank(Dense, descending = true)
         .over(["Movie", "Theatre"])
         .alias("Rank")
-    ).filter(asStruct(col("Movie", "Theatre")).isDuplicated)
+    ).filter(asStruct("Movie", "Theatre").isDuplicated)
 
 nbText: """
 That's a pretty complex set of requirements done very elegantly in Polars! To learn more

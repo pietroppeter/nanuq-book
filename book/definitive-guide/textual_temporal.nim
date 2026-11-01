@@ -175,7 +175,7 @@ nanuq """
 The book's next cells wrap the frames in `pl.StringCache()`, which older versions of
 Polars needed to join two categorical columns. It is a no-op now, and Nanuq has no string
 cache: joins on categoricals just work. The book's `cat.get_categories` is gone from
-Python Polars 2; Nanuq keeps Rust's `cat.getCategories`.
+Polars 2, in Python and in Nanuq.
 """
 
 nbText: """

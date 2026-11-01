@@ -5,8 +5,8 @@ import nanuq
 proc onebrc*(path: string): LazyFrame =
   ## Min, mean and max temperature per weather station, sorted by station.
   scanCsv(path, separator = ';', hasHeader = false,
-          schemaOverrides = {"column_2": Float64})
-    .rename({"column_1": "station", "column_2": "measurement"})
+          newColumns = ["station", "measurement"],
+          schemaOverrides = {"column_1": Float64})
     .groupBy(col("station"))
     .agg(
       col("measurement").min.alias("min"),

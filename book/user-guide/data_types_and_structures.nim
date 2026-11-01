@@ -172,17 +172,12 @@ in the dataframe:
 tabs """
 pl.set_random_seed(42)  # For reproducibility.
 
-print(df.sample(2))
+df.sample(2)
 """:
   nbCode:
     setRandomSeed(42)  # For reproducibility.
 
-    echo df.sample(2)
-
-nanuq """
-The same seed can pick different rows in the two tabs: Nanuq is built on the Polars crate
-0.55.2, py-polars 2.1.0 on a later commit, and the sampling changed in between.
-"""
+    nbShow df.sample(2)
 
 nbText: """
 #### Describe

@@ -226,29 +226,22 @@ random rows:
 """
 
 tabs """
-print(
-    top2000.select(
-        "jaar",
-        "artiest",
-        "titel",
-        "positie",
-        year_rank=pl.col("positie").rank().over("jaar"),
-    ).sample(10, seed=42)
-)
+top2000.select(
+    "jaar",
+    "artiest",
+    "titel",
+    "positie",
+    year_rank=pl.col("positie").rank().over("jaar"),
+).sample(10, seed=42)
 """:
   nbCode:
-    echo top2000.select(
+    nbShow top2000.select(
       col.jaar,
       col.artiest,
       col.titel,
       col.positie,
       col.positie.rank.over("jaar").alias("year_rank"),
     ).sample(10, seed = 42)
-
-nanuq """
-The random rows differ between the tabs even with the same seed (Nanuq's Polars crate is
-older than py-polars'), so both are printed rather than compared.
-"""
 
 nbText: """
 ## Dynamic grouping

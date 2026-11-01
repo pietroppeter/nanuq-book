@@ -37,14 +37,16 @@ pokemon.head()
         Grass, Water, Fire, Normal, Ground, Electric, Psychic, Fighting, Bug, Steel,
         Flying, Dragon, Dark, Ghost, Poison, Rock, Ice, Fairy
 
+    let typeEnum = dataType(PokemonType)
     # then let's load some csv data with information about pokemon
-    let pokemon = readCsv("data/polars/pokemon.csv")
-      .withColumns(col("Type 1").cast(PokemonType), col("Type 2").cast(PokemonType))
+    let pokemon = readCsv(
+      "data/polars/pokemon.csv",
+    ).cast({"Type 1": typeEnum, "Type 2": typeEnum})
     nbShow pokemon.head()
 
 nanuq """
-The Polars `Enum` is a Nim enum here, `PokemonType`, and the two columns are cast with
-`withColumns`: Nanuq's frame `cast` does not take a mapping of column names to types yet.
+The Polars `Enum` is a Nim enum here, `PokemonType`, and `dataType` turns it into the
+data type to cast to. `Enum(types)`, with the names as strings, would work too.
 """
 
 nbText: """

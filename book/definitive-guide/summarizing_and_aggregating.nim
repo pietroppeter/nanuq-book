@@ -334,7 +334,7 @@ final_df
     let result = smallSalesDf.rolling(
       indexColumn = "date",
       period = "7d",
-      groupBy = [col.store],
+      groupBy = "store",
     ).agg(
       col.sales.sum.alias("sum_of_last_7_days_sales"))
 

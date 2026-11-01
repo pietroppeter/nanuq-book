@@ -7,7 +7,7 @@ attribution definitiveGuide(18, "Polars Internals",
   "Left out: the examples on the NYC taxi trips (several GB of Parquet files), `show_graph` " &
   "(it draws plans with Graphviz; the printed plan of `explain` is shown instead), " &
   "`pl.from_repr` and the timing of `%%time` cells. The profiling example runs on a small " &
-  "query of the book's own.")
+  "query of the book's own, in Nim only.")
 
 nbText: """
 The last chapter of the book looks under the hood: how Polars stores data, how it
@@ -158,37 +158,24 @@ microseconds. The book profiles a query on the taxi trips; here it is a group-by
 fruit table:
 """
 
-tabs """
-fruit_by_color = (
-    pl.scan_csv("data/definitive-guide/fruit.csv")
-    .filter(pl.col("weight") > 100)
-    .group_by("color")
-    .agg(total_weight=pl.col("weight").sum())
-    .sort("total_weight", descending=True)
-)
+nbCode:
+  let fruitByColor = scanCsv("data/definitive-guide/fruit.csv")
+    .filter(col.weight > 100)
+    .groupBy("color")
+    .agg(col.weight.sum.alias("total_weight"))
+    .sort("total_weight", descending = true)
 
-result, profiling_info = fruit_by_color.profile()
-result
-""":
-  nbCode:
-    let fruitByColor = scanCsv("data/definitive-guide/fruit.csv")
-      .filter(col.weight > 100)
-      .groupBy("color")
-      .agg(col.weight.sum.alias("total_weight"))
-      .sort("total_weight", descending = true)
+  let (result, profilingInfo) = fruitByColor.profile
+  nbShow result
 
-    let (result, profilingInfo) = fruitByColor.profile
-    nbShow result
-
-tabs """
-print(profiling_info.select("node"))
-""":
-  nbCode:
-    echo profilingInfo.select("node")
+nbCode:
+  echo profilingInfo.select("node")
 
 nanuq """
-Only the node names are printed: the times change from run to run, and the two engines
-can name their nodes differently.
+This section has no Python tab: py-polars 2.0 removed `LazyFrame.profile`, because its
+per-node timings mislead under the streaming engine, now Python's default. Nanuq builds on
+the Polars crate, where `profile` still exists for the in-memory engine, which is what
+`collect` uses. Only the node names are printed, since the times change from run to run.
 """
 
 nbText: """

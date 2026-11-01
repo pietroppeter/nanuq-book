@@ -33,8 +33,7 @@ The Python queries are the originals, unchanged; both sides read the CSV files w
 `tryParseDates`, so the date columns are dates. In Nim, Python's `date(1995, 3, 15)` is
 Nanuq's `date(1995, 3, 15)`, column names that Python passes as strings are `col(...)`,
 keys are lists, `pl.len()` is the length of a column and `when/then/otherwise` is
-`choose`. Two queries take a detour for an expression Nanuq does not have yet: q21 counts
-late suppliers with a separate group-by and a join (no `Expr.filter`), and q20 takes the
+`choose`. One query takes a detour for an expression Nanuq does not have yet: q20 takes the
 unique keys with the frame's `unique` (no `Expr.unique`).
 """
 

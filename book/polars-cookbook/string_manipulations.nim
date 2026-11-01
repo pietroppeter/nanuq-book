@@ -4,23 +4,111 @@ bookInit()
 nbText: "# String manipulations"
 
 attribution polarsCookbook(6, "Performing String Manipulations",
-  "Two recipes of the chapter: cleaning strings and concatenating strings. Left out: " &
-  "`str.to_titlecase` (not in Nanuq yet), and the recipes on the Google Play Store reviews " &
-  "dataset, which the Nanuq book does not ship (filtering, extracting substrings, " &
-  "splitting into lists and structs).")
+  "Three recipes of the chapter: converting strings into dates and times, cleaning " &
+  "strings and concatenating strings. The conversion recipe runs on four made-up " &
+  "timestamps instead of the Google Play Store reviews dataset, which the Nanuq book does " &
+  "not ship. Left out: the other recipes on " &
+  "that dataset (filtering, extracting substrings, splitting into lists and structs).")
 
 nbText: """
 String columns have their own namespace of functions, `str`. These recipes clean up
-messy text and glue strings together.
+messy text, parse dates and glue strings together.
 
+## Converting strings into date, time, and datetime
+
+The recipe parses the timestamps of app reviews, `at`. Four of them stand in for the
+book's dataset:
+"""
+
+tabs """
+import polars as pl
+
+df = pl.DataFrame(
+    {
+        'at': [
+            '2024-03-14 09:26:53',
+            '2024-03-15 18:02:11',
+            '2024-04-01 00:00:00',
+            '2024-04-02 23:59:59'
+        ]
+    }
+)
+df.head()
+""":
+  nbCode:
+    import nanuq
+
+    var df = newDataFrame:
+      at: ["2024-03-14 09:26:53", "2024-03-15 18:02:11", "2024-04-01 00:00:00",
+           "2024-04-02 23:59:59"]
+    nbShow df.head()
+
+nbText: """
+With the format of the whole string, `toDate` keeps the date, `toTime` the time of day
+and `toDatetime` both:
+"""
+
+tabs """
+df.select(
+    'at',
+    pl.col('at').str.to_date(format='%Y-%m-%d %H:%M:%S').alias('at(date)')
+).head()
+""":
+  nbCode:
+    nbShow df.select(
+      col.at,
+      col.at.str.toDate(format = "%Y-%m-%d %H:%M:%S").alias("at(date)")).head()
+
+tabs """
+df.select(
+    'at',
+    pl.col('at').str.to_time(format='%Y-%m-%d %H:%M:%S').alias('at(time)')
+).head()
+""":
+  nbCode:
+    nbShow df.select(
+      col.at,
+      col.at.str.toTime(format = "%Y-%m-%d %H:%M:%S").alias("at(time)")).head()
+
+tabs """
+df.select(
+    'at',
+    pl.col('at').str.to_datetime(format='%Y-%m-%d %H:%M:%S').alias('at(datetime)')
+).head()
+""":
+  nbCode:
+    nbShow df.select(
+      col.at,
+      col.at.str.toDatetime(format = "%Y-%m-%d %H:%M:%S").alias("at(datetime)")).head()
+
+nbText: "`strptime` does all three, with the type to parse into:"
+
+tabs """
+df.select(
+    'at',
+    pl.col('at').str.strptime(pl.Date, '%Y-%m-%d %H:%M:%S').alias('at(date)'),
+    pl.col('at').str.strptime(pl.Time, '%Y-%m-%d %H:%M:%S').alias('at(time)'),
+    pl.col('at').str.strptime(pl.Datetime, '%Y-%m-%d %H:%M:%S').alias('at(datetime)')
+).head()
+""":
+  nbCode:
+    nbShow df.select(
+      col.at,
+      col.at.str.strptime(Date, "%Y-%m-%d %H:%M:%S").alias("at(date)"),
+      col.at.str.strptime(TimeOfDay, "%Y-%m-%d %H:%M:%S").alias("at(time)"),
+      col.at.str.strptime(DateTime, "%Y-%m-%d %H:%M:%S").alias("at(datetime)")).head()
+
+nanuq """
+The types are Nim's: `Date` and `TimeOfDay` from Nanuq, `DateTime` from `std/times`.
+"""
+
+nbText: """
 ## Cleaning strings
 
 Three sentences with stray spaces and random capitals:
 """
 
 tabs """
-import polars as pl
-
 df = pl.DataFrame(
     {
         'text': [
@@ -33,9 +121,7 @@ df = pl.DataFrame(
 df.head()
 """:
   nbCode:
-    import nanuq
-
-    var df = newDataFrame:
+    df = newDataFrame:
       text: ["  I aM a HUmAn.  ", "it is NOT   easy!  ", " WHY are You cool"]
     nbShow df.head()
 
@@ -85,13 +171,24 @@ df.select(
       col.text,
       col.text.str.replaceAll("a", "new_a", literal = true).alias("replaced_all_text"))
 
-nanuq """
-The recipe then title-cases the text with `str.to_titlecase()`. Nanuq does not have
-`toTitlecase` yet (Rust Polars has it behind its `nightly` feature), so that step is left
-out.
-"""
+nbText: "Title, lower and upper case:"
 
-nbText: "Lower and upper case:"
+tabs """
+df.select(
+    'text',
+    pl.col('text')
+    .str.to_titlecase().alias('title_case')
+)
+""":
+  nbCode:
+    nbShow df.select(
+      col.text,
+      col.text.str.toTitlecase.alias("title_case"))
+
+nanuq """
+`toTitlecase` needs Polars' `nightly` feature: the release libraries of Nanuq 0.3 have
+it, while a library built from source with stable Rust raises an `InvalidOperationError`.
+"""
 
 tabs """
 df.select(

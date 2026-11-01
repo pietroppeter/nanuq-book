@@ -4,9 +4,7 @@ bookInit()
 nbText: "# Strings"
 
 attribution userGuide("Strings", "expressions/strings",
-  "Left out: `extract_all` (it returns a list column, and Nanuq has no lists yet). " &
-  "`to_titlecase` is left out of the case conversion example, so the stripping example " &
-  "works on the original addresses.")
+  "Left out: `extract_all` (it returns a list column, and Nanuq has no lists yet).")
 
 nbText: """
 The following section discusses operations performed on string data, which is a frequently
@@ -29,8 +27,7 @@ the strings in a column in terms of the number of bytes and the number of charac
 nanuq """
 Nanuq 0.3 has the `str` namespace, with Polars' names in camelCase (`len_bytes` is
 `lenBytes`). It has about 25 of the 40+ functions so far: the ones that return lists or
-structs (`split`, `extract_all`, `extract_groups`) wait for nested types, and
-`toTitlecase` for a library built with Polars' `nightly` feature.
+structs (`split`, `extract_all`, `extract_groups`) wait for nested types.
 """
 
 tabs """
@@ -220,11 +217,6 @@ Converting the casing of a string is a common operation and Polars supports it o
 box with the functions `to_lowercase`, `to_titlecase`, and `to_uppercase`:
 """
 
-nanuq """
-Nanuq has no `toTitlecase` yet (Rust Polars has it behind its `nightly` feature), so both
-sides keep the `addresses` column as it is instead.
-"""
-
 tabs """
 addresses = pl.DataFrame(
     {
@@ -239,7 +231,7 @@ addresses = pl.DataFrame(
 
 addresses = addresses.select(
     pl.col("addresses").alias("originals"),
-    pl.col("addresses"),
+    pl.col("addresses").str.to_titlecase(),
     pl.col("addresses").str.to_lowercase().alias("lower"),
     pl.col("addresses").str.to_uppercase().alias("upper"),
 )
@@ -251,10 +243,15 @@ addresses
 
     addresses = addresses.select(
       col.addresses.alias("originals"),
-      col.addresses,
+      col.addresses.str.toTitlecase,
       col.addresses.str.toLowercase.alias("lower"),
       col.addresses.str.toUppercase.alias("upper"))
     nbShow addresses
+
+nanuq """
+`toTitlecase` needs Polars' `nightly` feature: the release libraries of Nanuq 0.3 have
+it, while a library built from source with stable Rust raises an `InvalidOperationError`.
+"""
 
 nbText: """
 ### Stripping characters from the ends

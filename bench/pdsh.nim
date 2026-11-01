@@ -360,14 +360,11 @@ proc q21*(t: Tables): LazyFrame =
           leftOn = ["s_nationkey"], rightOn = ["n_nationkey"])
     .join(t.orders.filter(col("o_orderstatus") == "F"),
           leftOn = ["l_orderkey"], rightOn = ["o_orderkey"], how = Semi)
-  let lines = t.lineitem.join(l1, on = ["l_orderkey"], how = Semi)
-  # Nanuq has no Expr.filter yet: the late suppliers of each order are counted apart
-  let lateSupp = lines.filter(isLate)
+  let perOrder = t.lineitem.join(l1, on = ["l_orderkey"], how = Semi)
     .groupBy(col("l_orderkey"))
-    .agg(col("l_suppkey").nUnique.alias("n_late_supp"))
-  let perOrder = lines.groupBy(col("l_orderkey"))
-    .agg(col("l_suppkey").nUnique.alias("n_supp"))
-    .join(lateSupp, on = ["l_orderkey"], how = Left)
+    .agg(
+      col("l_suppkey").nUnique.alias("n_supp"),
+      col("l_suppkey").filter(isLate).nUnique.alias("n_late_supp"))
   l1.join(perOrder, on = ["l_orderkey"])
     .filter(col("n_supp") > 1 and col("n_late_supp") == 1)
     .groupBy(col("s_name"))

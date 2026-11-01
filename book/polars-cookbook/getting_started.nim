@@ -4,8 +4,7 @@ bookInit()
 nbText: "# Getting started"
 
 attribution polarsCookbook(1, "Getting Started with Python Polars",
-  "Data is read from `data/polars-cookbook/`. `str.to_titlecase` is `str.to_uppercase` " &
-  "here. Left out: `from_numpy`, most of the Series " &
+  "Data is read from `data/polars-cookbook/`. Left out: `from_numpy`, most of the Series " &
   "recipe, `flags`, `show_graph` (it draws the query plan with Graphviz), and the recipe on " &
   "data larger than memory, which needs a Chicago taxi trips file that the book does not ship.")
 
@@ -195,7 +194,7 @@ tabs """
 df.select(pl.col(['Survived', 'Ticket', 'Fare'])).head()
 """:
   nbCode:
-    nbShow df.select(col("Survived", "Ticket", "Fare")).head()
+    nbShow df.select(col(["Survived", "Ticket", "Fare"])).head()
 
 tabs """
 df.select(
@@ -318,17 +317,17 @@ df.with_row_index().head()
 
 nbText: "An expression on an existing column replaces it:"
 
-nanuq """
-The recipe title-cases the `Sex` column with `str.to_titlecase()`. Nanuq does not have
-`toTitlecase` yet (Rust Polars has it behind its `nightly` feature), so this page
-upper-cases instead, with `str.to_uppercase()` on the Python side too.
-"""
-
 tabs """
-df.with_columns(pl.col('Sex').str.to_uppercase()).head()
+df.with_columns(pl.col('Sex').str.to_titlecase()).head()
 """:
   nbCode:
-    nbShow df.withColumns(col.Sex.str.toUppercase).head()
+    nbShow df.withColumns(col.Sex.str.toTitlecase).head()
+
+nanuq """
+`toTitlecase` is new in Nanuq 0.3, and needs Polars' `nightly` feature: the release
+libraries have it, while a library built from source with stable Rust raises an
+`InvalidOperationError`.
+"""
 
 tabs """
 df.with_columns(
@@ -350,7 +349,7 @@ tabs """
 df.select(['PassengerId', 'Survived', 'Sex', 'Age', 'Fare']).head()
 """:
   nbCode:
-    nbShow df.select(col("PassengerId", "Survived", "Sex", "Age", "Fare")).head()
+    nbShow df.select(col(["PassengerId", "Survived", "Sex", "Age", "Fare"])).head()
 
 nbText: """
 Several new columns in one `withColumns` are computed in parallel; a chain of
@@ -362,7 +361,7 @@ best_practice = (
     df.with_columns(
         pl.col('Fare').max().alias('Max Fare'),
         pl.lit('Titanic'),
-        pl.col('Sex').str.to_uppercase()
+        pl.col('Sex').str.to_titlecase()
     )
 )
 best_practice.head()
@@ -371,7 +370,7 @@ best_practice.head()
     let bestPractice = df.withColumns(
       col.Fare.max.alias("Max Fare"),
       lit("Titanic"),
-      col.Sex.str.toUppercase)
+      col.Sex.str.toTitlecase)
     nbShow bestPractice.head()
 
 tabs """
@@ -379,7 +378,7 @@ not_so_good_practice = (
     df
     .with_columns(pl.col('Fare').max().alias('Max Fare'))
     .with_columns(pl.lit('Titanic'))
-    .with_columns(pl.col('Sex').str.to_uppercase())
+    .with_columns(pl.col('Sex').str.to_titlecase())
 )
 not_so_good_practice.head()
 """:
@@ -387,7 +386,7 @@ not_so_good_practice.head()
     let notSoGoodPractice = df
       .withColumns(col.Fare.max.alias("Max Fare"))
       .withColumns(lit("Titanic"))
-      .withColumns(col.Sex.str.toUppercase)
+      .withColumns(col.Sex.str.toTitlecase)
     nbShow notSoGoodPractice.head()
 
 nbText: """
@@ -406,9 +405,9 @@ df = df.sort(by=['Age', 'Name'])
 df.head()
 """:
   nbCode:
-    let cols = col("Name", "Sex", "Age", "Fare", "Cabin", "Pclass", "Survived")
+    let cols = ["Name", "Sex", "Age", "Fare", "Cabin", "Pclass", "Survived"]
 
-    var steps = df.select(cols)
+    var steps = df.select(col(cols))
     steps = steps.filter(col.Age >= 35)
     steps = steps.sort(["Age", "Name"])
     nbShow steps.head()
@@ -425,14 +424,14 @@ df.head()
 """:
   nbCode:
     let chained = df
-      .select(cols)
+      .select(col(cols))
       .filter(col.Age >= 35)
       .sort(["Age", "Name"])
     nbShow chained.head()
 
 nanuq """
-In Nim, `cols` is a selector, `col` with several names, rather than a list of names: `col`
-does not take an array yet.
+Nim's `select` takes expressions, so the list of names goes through `col`, which takes an
+array (or a `seq`) of names since Nanuq 0.3.
 """
 
 nanuq """

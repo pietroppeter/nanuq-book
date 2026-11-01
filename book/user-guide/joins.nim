@@ -4,9 +4,7 @@ bookInit()
 nbText: "# Joins"
 
 attribution userGuide("Joins", "transformations/joins",
-  "Left out: the join on a lowercased key (it needs `str.to_lowercase`, not in Nanuq yet; " &
-  "the same join with plain column keys is kept), the non-equi join `join_where` and the " &
-  "asof join `join_asof`.")
+  "Left out: the non-equi join `join_where`.")
 
 nbText: """
 A join operation combines columns from one or more dataframes into a new dataframe. The
@@ -42,8 +40,8 @@ skip the table and keep reading below.
 nanuq """
 In Nanuq the strategies are values of the enum `JoinType`, named as in Rust Polars, where
 Python Polars uses strings: `join(..., how = Inner)` (the default), `Left`, `Right`, `Full`,
-`Semi`, `Anti` and `Cross`. Nanuq has no `join_where` or `join_asof` yet, so their sections
-are left out below.
+`Semi`, `Anti` and `Cross`. Nanuq has `joinAsof` but no `join_where` yet, so the section on
+non-equi joins is left out below.
 """
 
 nbText: """
@@ -106,10 +104,15 @@ argument, that one of the dataframes had a differently named column and the othe
 property names in lower case:
 """
 
-nanuq """
-The `str` namespace (`str.to_lowercase`) is not in Nanuq yet, so this port only renames the
-column and leaves the names as they are.
-"""
+tabs """
+props_groups2 = props_groups.with_columns(
+    pl.col("property_name").str.to_lowercase(),
+)
+props_groups2
+""":
+  nbCode:
+    let propsGroups2 = propsGroups.withColumns(col("property_name").str.toLowercase)
+    nbShow propsGroups2
 
 tabs """
 props_prices2 = props_prices.select(
@@ -128,17 +131,26 @@ on the left and on the right, allowing one to compute row keys dynamically:
 """
 
 nanuq """
-In Nanuq these are `leftOn` and `rightOn`, which also take expressions. The original
-computes the key on the right with `pl.col("name").str.to_lowercase()`; this port joins on
-the plain columns.
+In Nanuq these are `leftOn` and `rightOn`, which take column names or expressions.
 """
 
 tabs """
-props_groups.join(props_prices2, left_on="property_name", right_on="name")
+props_groups2.join(
+    props_prices2,
+    left_on="property_name",
+    right_on=pl.col("name").str.to_lowercase(),
+)
 """:
   nbCode:
-    let byName = propsGroups.join(propsPrices2, leftOn = ["property_name"], rightOn = ["name"])
+    let byName = propsGroups2.join(propsPrices2,
+      leftOn = [col("property_name")], rightOn = [col("name").str.toLowercase])
     nbShow byName
+
+nbText: """
+Because we are joining on the right with an expression, Polars preserves the column
+“property_name” from the left and the column “name” from the right so we can have access to
+the original values that the key expressions were applied to.
+"""
 
 nbText: """
 ## Join strategies
@@ -300,6 +312,123 @@ props_groups.join(props_prices, on="property_name", how="anti")
     let antiJoin = propsGroups.join(propsPrices, on = ["property_name"], how = Anti)
     nbShow antiJoin
 
+nanuq """
+Not ported yet: the original's section on **non-equi joins** (`join_where`), where a
+predicate such as `pl.col("cash") > pl.col("cost")` decides which rows pair up.
+"""
+
+nbText: """
+## Asof join
+
+An `asof` join is like a left join except that we match on nearest key rather than equal
+keys. In Polars we can do an asof join with the `join_asof` method.
+
+For the asof join we will consider a scenario inspired by the stock market. Suppose a stock
+market broker has a dataframe called `df_trades` showing transactions it has made for
+different stocks.
+"""
+
+nanuq """
+In Nim the times are std/times `DateTime`s. Nanuq stores them as UTC instants in a
+`Datetime` column without a time zone, like Python's naive `datetime`.
+"""
+
+tabs """
+from datetime import datetime
+
+df_trades = pl.DataFrame(
+    {
+        "time": [
+            datetime(2020, 1, 1, 9, 1, 0),
+            datetime(2020, 1, 1, 9, 1, 0),
+            datetime(2020, 1, 1, 9, 3, 0),
+            datetime(2020, 1, 1, 9, 6, 0),
+        ],
+        "stock": ["A", "B", "B", "C"],
+        "trade": [101, 299, 301, 500],
+    }
+)
+df_trades
+""":
+  nbCode:
+    import std/times
+
+    proc at(hour, minute: int): DateTime =
+      dateTime(2020, mJan, 1, hour, minute, 0, zone = utc())
+
+    let dfTrades = newDataFrame(
+      series("time", [at(9, 1), at(9, 1), at(9, 3), at(9, 6)]),
+      series("stock", ["A", "B", "B", "C"]),
+      series("trade", [101, 299, 301, 500]))
+    nbShow dfTrades
+
+nbText: """
+The broker has another dataframe called `df_quotes` showing prices it has quoted for these
+stocks:
+"""
+
+tabs """
+df_quotes = pl.DataFrame(
+    {
+        "time": [
+            datetime(2020, 1, 1, 9, 0, 0),
+            datetime(2020, 1, 1, 9, 2, 0),
+            datetime(2020, 1, 1, 9, 4, 0),
+            datetime(2020, 1, 1, 9, 6, 0),
+        ],
+        "stock": ["A", "B", "C", "A"],
+        "quote": [100, 300, 501, 102],
+    }
+)
+df_quotes
+""":
+  nbCode:
+    let dfQuotes = newDataFrame(
+      series("time", [at(9, 0), at(9, 2), at(9, 4), at(9, 6)]),
+      series("stock", ["A", "B", "C", "A"]),
+      series("quote", [100, 300, 501, 102]))
+    nbShow dfQuotes
+
+nbText: """
+You want to produce a dataframe showing for each trade the most recent quote provided _on
+or before_ the time of the trade. You do this with `join_asof` (using the default
+`strategy = "backward"`). To avoid joining between trades on one stock with a quote on
+another you must specify an exact preliminary join on the stock column with `by="stock"`.
+"""
+
+nanuq """
+In Nanuq the strategy is a value of the enum `AsofStrategy` (`Backward`, the default,
+`Forward` or `Nearest`).
+"""
+
+tabs """
+df_trades.join_asof(df_quotes, on="time", by="stock", check_sortedness=False)
+""":
+  nbCode:
+    let dfAsofJoin = dfTrades.joinAsof(dfQuotes, on = "time", by = "stock",
+                                       checkSortedness = false)
+    nbShow dfAsofJoin
+
+nbText: """
+If you want to make sure that only quotes within a certain time range are joined to the
+trades you can specify the `tolerance` argument. In this case we want to make sure that the
+last preceding quote is within 1 minute of the trade so we set `tolerance = "1m"`.
+"""
+
+nanuq """
+The tolerance can also be a std/times interval: `tolerance = 1.minutes`.
+"""
+
+tabs """
+df_trades.join_asof(
+    df_quotes, on="time", by="stock", tolerance="1m", check_sortedness=False
+)
+""":
+  nbCode:
+    let dfAsofToleranceJoin = dfTrades.joinAsof(dfQuotes, on = "time", by = "stock",
+                                                tolerance = "1m", checkSortedness = false)
+    nbShow dfAsofToleranceJoin
+
 nbText: """
 ## Cartesian product
 
@@ -322,12 +451,5 @@ players.select(pl.col("name")).join(tokens, how="cross")
     let crossJoin = players.select(col("name")).join(tokens, how = Cross)
     nbShow crossJoin
 
-nanuq """
-Not ported yet: the original's sections on **non-equi joins** (`join_where`), where a
-predicate such as `pl.col("cash") > pl.col("cost")` decides which rows pair up, and on
-**asof joins** (`join_asof`), which match on the nearest key, for example the latest quote
-before each trade (they also need datetime columns). In the original they come before the
-Cartesian product.
-"""
 
 bookSave()

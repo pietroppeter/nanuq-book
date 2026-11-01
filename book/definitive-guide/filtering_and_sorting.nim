@@ -5,8 +5,8 @@ nbText: "# Filtering and sorting rows"
 
 attribution definitiveGuide(11, "Filtering and Sorting Rows",
   "Data is read from `data/definitive-guide/`. Left out: sorting nested data (lists and " &
-  "structs), `pl.all_horizontal`, `gather_every` and `top_k`, which Nanuq does not have " &
-  "yet. The sample uses a seed, so that both sides pick the same rows.")
+  "structs), which Nanuq does not have yet. The sample uses a seed, so that both sides " &
+  "pick the same rows.")
 
 nbText: """
 Two verbs decide which rows you keep and in which order: `filter` and `sort`. This
@@ -115,6 +115,57 @@ tools.drop_nulls("rpm").height
 """:
   nbCode:
     echo tools.dropNulls("rpm").height
+
+nbText: """
+The same check across all columns, spelled out: `all_horizontal` is true for a row when
+all of its expressions are, here when no column is null.
+"""
+
+nanuq """
+Nanuq's `allHorizontal` takes a list of expressions or, as here, a selector expression.
+"""
+
+tabs """
+tools.filter(pl.all_horizontal(pl.all().is_not_null())).height
+""":
+  nbCode:
+    echo tools.filter(allHorizontal(all().isNotNull)).height
+
+nbText: """
+### Slicing
+
+`head`, `tail` and `slice` take consecutive rows; `gather_every` takes every *n*th row.
+`with_row_index` shows which rows were taken.
+"""
+
+nanuq """
+Nanuq has `gatherEvery` on expressions but not on a dataframe; applied to `all()` it
+gives the same frame.
+"""
+
+tabs """
+tools.with_row_index().gather_every(2).head(3)
+""":
+  nbCode:
+    nbShow tools.withRowIndex().select(all().gatherEvery(2)).head(3)
+
+nbText: """
+### Top and bottom
+
+`top_k` gives the *k* rows with the largest values of a column, largest first, and
+`bottom_k` the smallest.
+"""
+
+nanuq """
+Nanuq has `topK` and `topKBy` on expressions but no `top_k` on a dataframe yet:
+`all().topKBy("price", 3)` takes the same rows from every column.
+"""
+
+tabs """
+tools.top_k(3, by="price")
+""":
+  nbCode:
+    nbShow tools.select(all().topKBy("price", 3))
 
 nbText: """
 ### Sampling

@@ -4,9 +4,9 @@ bookInit()
 nbText: "# Window functions"
 
 attribution userGuide("Window functions", "expressions/window-functions",
-  "The data is read from `data/polars/pokemon.csv`. The examples with `sort_by`, `head`, " &
-  "`explode` and the `mapping_strategy` parameter run in Python only, since Nanuq does not " &
-  "have them yet. The diagrams are left out.")
+  "The data is read from `data/polars/pokemon.csv`. The examples with `explode` and the " &
+  "`mapping_strategy` parameter run in Python only, since Nanuq does not have them yet. " &
+  "The diagrams are left out.")
 
 nbText: """
 Window functions are expressions with superpowers. They allow you to perform aggregations
@@ -186,9 +186,8 @@ athletes
     nbShow athletes
 
 nanuq """
-Nanuq has no `sort_by` on expressions and no `mapping_strategy` yet, so the examples of
-this section run in Python only. The one that Nanuq can write, the default
-`group_to_rows`, needs `sort_by`.
+Nanuq's `over` has no `mapping_strategy` yet, so only the default, `group_to_rows`, has a
+Nim version in this section.
 """
 
 nbText: """
@@ -198,14 +197,19 @@ change is the order of the names of the athletes, which goes from “B”, “C�
 “B”, “F”, and “C”:
 """
 
-python """
+tabs """
 result = athletes.select(
     pl.col("athlete", "rank").sort_by(pl.col("rank")).over(pl.col("country")),
     pl.col("country"),
 )
 
 result
-"""
+""":
+  nbCode:
+    let sortedByRank = athletes.select(
+      col(["athlete", "rank"]).sortBy(col("rank")).over(col("country")),
+      col("country"))
+    nbShow sortedByRank
 
 nbText: """
 ### `explode`
@@ -304,7 +308,8 @@ result
 """
 
 nanuq """
-Python only as well: these need `sort_by`, `head` on expressions and `mapping_strategy`.
+Python only as well: Nanuq has `sortBy` and `head` on expressions, but not
+`mapping_strategy`.
 """
 
 bookSave()

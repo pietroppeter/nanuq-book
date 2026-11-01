@@ -11,6 +11,7 @@ requires "nim >= 2.0.0"
 requires "nimib >= 0.4.3"
 requires "nimibook >= 0.4.0"
 requires "nimpy >= 0.2.1"  # runs the Python side of the tabs
+requires "db_connector >= 0.1.0"  # nanuq/database (SQLite chapters)
 # nanuq is not a nimble dependency: it is the git submodule in nanuq/, pinned to a
 # commit, and config.nims puts nanuq/src on the path.
 

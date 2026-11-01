@@ -138,16 +138,11 @@ nbText: """
 `with_row_index` shows which rows were taken.
 """
 
-nanuq """
-Nanuq has `gatherEvery` on expressions but not on a dataframe; applied to `all()` it
-gives the same frame.
-"""
-
 tabs """
 tools.with_row_index().gather_every(2).head(3)
 """:
   nbCode:
-    nbShow tools.withRowIndex().select(all().gatherEvery(2)).head(3)
+    nbShow tools.withRowIndex().gatherEvery(2).head(3)
 
 nbText: """
 ### Top and bottom

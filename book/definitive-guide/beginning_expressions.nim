@@ -172,7 +172,7 @@ tabs """
 fruit.group_by(is_orange).len()
 """:
   nbCode:
-    nbShow fruit.groupBy(isOrange).agg(col.name.len.alias("len")).collect
+    nbShow fruit.groupBy(isOrange).agg(col.name.len.alias("len"))
 
 nanuq """
 Nanuq's group-by has no `len()` shortcut yet: it counts rows with `len` on any column.

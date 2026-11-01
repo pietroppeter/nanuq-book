@@ -4,8 +4,7 @@ bookInit()
 nbText: "# Missing data"
 
 attribution userGuide("Missing data", "expressions/missing-data",
-  "Nanuq has no frame-wide `null_count`, so the Nim side counts with `isNull.sum`, and no " &
-  "null literal, so `fill_nan(None)` is a `when`/`then` without `otherwise`.")
+  "Nanuq has no frame-wide `null_count`, so the Nim side counts with `isNull.sum`.")
 
 nbText: """
 This section of the user guide teaches how to work with missing data in Polars.
@@ -299,9 +298,7 @@ with the value `null`:
 """
 
 nanuq """
-Nanuq's `fillNan` takes a number or an expression, but Nanuq has no `null` literal for
-`fill_nan(None)`. A `when` with no `otherwise` gives `null` where its condition is false,
-which is the same thing here.
+Python's `None` is `nil` in Nanuq: `fillNan(nil)` replaces NaN with null.
 """
 
 tabs """
@@ -314,7 +311,7 @@ nan_df.with_columns(
 """:
   nbCode:
     let meanNanDf = nanDf.withColumns(
-      `when`(not col("value").isNan).then(col("value")).alias("replaced"),
+      col("value").fillNan(nil).alias("replaced"),
     ).select(
       all().mean.name.suffix("_mean"),
       all().sum.name.suffix("_sum"))

@@ -28,13 +28,11 @@ df_agg
 
     let df = readCsv("data/polars/iris.csv")
     let dfSmall = df.filter(col("sepal_length") > 5)
-    let dfAgg = dfSmall.groupBy(col("species")).agg(col("sepal_width").mean).collect
+    let dfAgg = dfSmall.groupBy("species").agg(col("sepal_width").mean)
     nbShow dfAgg
 
 nanuq """
-In Nanuq `groupBy` takes expressions, so the key is `col("species")`, and on a dataframe it
-still ends with `collect`: `groupBy(...).agg(...)` gives a lazy frame even when it starts
-from an eager one. The groups come in the order they are first seen; in Python their order
+The groups come in the order they are first seen; in Python their order
 can change from run to run (the book compares the two tables row by row, in any order).
 """
 

@@ -479,8 +479,8 @@ tabs """
 """:
   nbCode:
     nbShow newDataFrame(series("cluster", ["a", "a", "b", "b"]), series("x", [1, 3, 3, 7]))
-      .groupBy(col.cluster)
-      .agg(col.x.mean.alias("mean")).collect
+      .groupBy("cluster")
+      .agg(col.x.mean.alias("mean"))
 
 nbText: """
 ### Operations that are quantifiers
@@ -488,10 +488,6 @@ nbText: """
 `all` is true when every value is, `any` when at least one is:
 """
 
-nanuq """
-Nanuq has no `all` and `any` aggregations on expressions yet (`all()` is the selector of
-all columns). On booleans `min` and `max` give the same answers.
-"""
 
 tabs """
 df = pl.DataFrame(
@@ -514,8 +510,8 @@ df.select(
       z: [false, false, false]
     echo bools
     nbShow bools.select(
-      all().min.name.suffix("_all"),
-      all().max.name.suffix("_any"))
+      all().all.name.suffix("_all"),
+      all().any.name.suffix("_any"))
 
 nbText: """
 ### Operations that compute statistics

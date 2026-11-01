@@ -238,7 +238,6 @@ df.group_by(
   nbCode:
     nbShow df.groupBy((col.birthdate.dt.year div 10 * 10).alias("decade"))
       .agg(col.name.len.alias("len"))
-      .collect
 
 nbText: """
 The keyword argument `maintain_order` forces Polars to present the resulting groups in the
@@ -272,7 +271,6 @@ df.group_by(
         col.name.len.alias("sample_size"),
         col.weight.mean.round(2).alias("avg_weight"),
         col.height.max.alias("tallest"))
-      .collect
 
 nbText: """
 ### More complex queries

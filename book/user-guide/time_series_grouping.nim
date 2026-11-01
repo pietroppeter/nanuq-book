@@ -51,8 +51,7 @@ The annual average closing price is then:
 """
 
 nanuq """
-In Nanuq `groupByDynamic` returns a lazy group-by, so `agg` gives a `LazyFrame` to
-`collect`. `every` is a Polars interval (`"1y"`) or a std/times one (`1.years`).
+In Nanuq `every` is a Polars interval (`"1y"`) or a std/times one (`1.years`).
 """
 
 tabs """
@@ -63,7 +62,7 @@ df_with_year
 """:
   nbCode:
     let annualAverageDf = df.groupByDynamic("Date", every = "1y")
-      .agg(col("Close").mean).collect
+      .agg(col("Close").mean)
 
     let dfWithYear = annualAverageDf.withColumns(col("Date").dt.year.alias("year"))
     nbShow dfWithYear
@@ -209,8 +208,7 @@ df.group_by_dynamic("time", every="1mo", period="1mo", closed="left").agg(
 
     let daysInMonth = days.groupByDynamic("time", every = "1mo", period = "1mo",
                                           closed = ClosedWindow.Left).agg(
-      ((col("time") - col("time").first).last.dt.totalDays + 1).alias("days_in_month")
-    ).collect
+      ((col("time") - col("time").first).last.dt.totalDays + 1).alias("days_in_month"))
     nbShow daysInMonth
 
 nbText: """
@@ -272,7 +270,7 @@ df
     nbShow df2
 
 nanuq """
-`group_by` within the windows is `groupBy`, a list of expressions.
+`group_by` within the windows is `groupBy`, a list of expressions or column names.
 """
 
 tabs """
@@ -291,7 +289,7 @@ df.group_by_dynamic(
       closed = ClosedWindow.Both,
       groupBy = [col("groups")],
       includeBoundaries = true,
-    ).agg(col("time").len.alias("len")).collect
+    ).agg(col("time").len.alias("len"))
     nbShow byHour
 
 bookSave()

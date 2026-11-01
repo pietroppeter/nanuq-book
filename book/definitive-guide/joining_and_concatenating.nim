@@ -452,8 +452,8 @@ tabs """
 )
 """:
   nbCode:
-    nbShow salesWithCampaignDf.groupBy(col("Product Type"), col("Campaign Name"))
-      .agg(col("Quantity").mean).collect
+    nbShow salesWithCampaignDf.groupBy("Product Type", "Campaign Name")
+      .agg(col("Quantity").mean)
       .sort(["Product Type", "Campaign Name"])
 
 nbText: """

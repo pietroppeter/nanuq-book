@@ -146,7 +146,7 @@ tabs """
 rebels.group_by("hair_color").agg(cs.numeric().mean())
 """:
   nbCode:
-    nbShow rebels.groupBy(col.hair_color).agg(col(SomeNumber).mean).collect
+    nbShow rebels.groupBy(col.hair_color).agg(col(SomeNumber).mean)
 
 tabs """
 rebels.select(cs.string())

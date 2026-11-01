@@ -160,7 +160,7 @@ A Series knows its length, its name and its data type:
 
 nanuq """
 A Series has one dimension, so where Python's `shape` is the tuple `(5,)`, Nanuq has
-`len`. Nanuq prints data types with Polars' short names, `i64` for `Int64`.
+`len`. A data type prints the way you write it in Nim, so `Int64` here matches Python.
 """
 
 tabs """

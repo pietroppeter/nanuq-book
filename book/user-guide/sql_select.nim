@@ -5,8 +5,8 @@ nbText: "# SQL: SELECT"
 
 attribution userGuide("SELECT", "sql/select",
   "The data is read from `data/polars/` instead of `docs/assets/data/`. Left out: the " &
-  "`read_ndjson` and `read_parquet` table functions, whose example files the book does " &
-  "not ship.")
+  "table functions with named options (Nanuq's Rust Polars is older than Python Polars " &
+  "2.1's), and the `read_ndjson`, `read_parquet` and `read_ipc` examples, which use them.")
 
 nbText: """
 In Polars SQL, the `SELECT` statement is used to retrieve data from a table into a
@@ -222,20 +222,11 @@ The path can also be a glob, or a list of paths or globs, as in
 the options of `scan_csv`. Write them as `name => value` (or `name := value`):
 """
 
-tabs """
-result = ctx.execute(
-    '''
-        SELECT *
-        FROM read_csv('data/polars/iris.csv', infer_schema => false, skip_rows_after_header => 147)
-    '''
-)
-result
-""":
-  nbCode:
-    nbShow ctx.execute("""
-        SELECT *
-        FROM read_csv('data/polars/iris.csv', infer_schema => false, skip_rows_after_header => 147)
-    """, eager = true)
+nanuq """
+Nanuq's Rust Polars (0.55.2, the newest on crates.io) is older than the one inside Python
+Polars 2.1, and its SQL takes only the path in table functions, so the examples with
+named options are left out.
+"""
 
 nbText: """
 The supported options are:
@@ -261,36 +252,5 @@ Values are SQL literals:
 
 Unlike `scan_csv`, `read_csv` tries to parse dates by default (`try_parse_dates => true`).
 """
-
-nanuq """
-The guide goes on with `read_ndjson` and `read_parquet`, on files the book does not ship;
-they work the same way in Nanuq, since the SQL is Polars'.
-"""
-
-nbText: """
-`read_ipc` accepts the options of `scan_ipc` in the same way: `hive_partitioning`,
-`hive_schema`, `try_parse_hive_dates` and `include_file_paths`.
-"""
-
-tabs """
-pl.read_csv("data/polars/iris.csv").write_ipc("data/polars/iris.feather")
-
-result = ctx.execute(
-    '''
-        SELECT species, sepal_length, path
-        FROM read_ipc('data/polars/iris.feather', include_file_paths => 'path')
-        LIMIT 3
-    '''
-)
-result
-""":
-  nbCode:
-    readCsv("data/polars/iris.csv").writeIpc("data/polars/iris.feather")
-
-    nbShow ctx.execute("""
-        SELECT species, sepal_length, path
-        FROM read_ipc('data/polars/iris.feather', include_file_paths => 'path')
-        LIMIT 3
-    """, eager = true)
 
 bookSave()

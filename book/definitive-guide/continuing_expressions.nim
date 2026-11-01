@@ -7,8 +7,8 @@ attribution definitiveGuide(8, "Continuing Expressions",
   "Data is read from `data/definitive-guide/` (the NVIDIA prices are the book's " &
   "`stock/nvda/2023.csv`). The book draws random numbers with numpy; here both sides draw " &
   "them with Polars' seeded `sample`, or use the penguins, so that they get the same ones. " &
-  "`sample` on an expression gets a seed on both sides. Left out: the timing cells and " &
-  "the plot.")
+  "Left out: `hash` and `sample` on an expression (their results depend on the Polars " &
+  "version), the timing cells and the plot.")
 
 nbText: """
 The previous chapter introduced expressions; this one goes through the many methods an
@@ -270,13 +270,15 @@ nbText: """
 """
 
 nanuq """
-Nim writes the mapping of `replace` as `{"a": "b"}`.
+Nim writes the mapping of `replace` as `{"a": "b"}`. The book also shows
+`hash(seed=1337)`, which Nanuq has (`col.x.hash(seed = 1337)`), but its values depend on
+the Polars version, and Nanuq's Rust Polars is not the one inside Python Polars 2.1, so
+that column is left out.
 """
 
 tabs """
 (
     pl.DataFrame({"x": ["here", "there", "their", "they're"]}).with_columns(
-        hash=pl.col("x").hash(seed=1337),
         repeat_by=pl.col("x").repeat_by(3),
         replace=pl.col("x").replace(
             {
@@ -289,7 +291,6 @@ tabs """
 """:
   nbCode:
     nbShow newDataFrame(series("x", ["here", "there", "their", "they're"])).withColumns(
-      col.x.hash(seed = 1337).alias("hash"),
       col.x.repeatBy(3).alias("repeat_by"),
       col.x.replace({"here": "there", "they're": "they are"}).alias("replace"))
 
@@ -664,15 +665,15 @@ tabs """
 nbText: "### Operations that select"
 
 nanuq """
-The book's `sample(7)` has no seed, so it picks other values on every run; both sides
-give it `seed=42`, to show the same ones.
+The book also takes a random `sample(7)`. Nanuq has it (`col.x.sample(7, seed = 42)`),
+but even with a seed the order of the values depends on the Polars version, which differs
+between Nanuq and Python Polars 2.1, so that column is left out.
 """
 
 tabs """
 df_ints.select(
     bottom_k=pl.col("x").bottom_k(7),
     head=pl.col("x").head(7),
-    sample=pl.col("x").sample(7, seed=42),
     slice=pl.col("x").slice(400, 7),
     gather=pl.col("x").gather([1, 1, 2, 3, 5, 8, 13]),
     gather_every=pl.col("x").gather_every(247),
@@ -683,7 +684,6 @@ df_ints.select(
     nbShow dfInts.select(
       col.x.bottomK(7).alias("bottom_k"),
       col.x.head(7).alias("head"),
-      col.x.sample(7, seed = some(42)).alias("sample"),
       col.x.slice(400, 7).alias("slice"),
       col.x.gather([1, 1, 2, 3, 5, 8, 13]).alias("gather"),
       col.x.gatherEvery(247).alias("gather_every"),

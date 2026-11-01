@@ -35,6 +35,7 @@ var book = initBookWithToc:
     entry("SQL: SHOW TABLES", "sql_show")
   section("Python Polars: The Definitive Guide", "definitive-guide/index.md"):
     entry("Data structures and data types", "data_structures")
+    entry("Reading and writing data", "reading_and_writing")
     entry("Beginning expressions", "beginning_expressions")
     entry("Continuing expressions", "continuing_expressions")
     entry("Selecting and creating columns", "selecting_and_creating")

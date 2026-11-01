@@ -296,11 +296,12 @@ except DuplicateError as err:
         col("price") / gbpUsdRate,  # This would be named "price"...
         col("price") / eurUsdRate,  # And so would this.
       )
-    except NanuqError as err:
-      echo "NanuqError: ", err.msg.splitLines[0]
+    except DuplicateError as err:
+      echo "DuplicateError: ", err.msg.splitLines[0]
 
 nanuq """
-Polars' errors arrive in Nanuq as `NanuqError`, with Polars' message.
+Polars' errors arrive in Nanuq with the same types as in Python (`DuplicateError` here), all
+subtypes of `PolarsError`, and with Polars' message.
 """
 
 nbText: """

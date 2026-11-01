@@ -24,18 +24,17 @@ nations and regions they are in) and 22 queries that report on them. Polars publ
 how fast it runs them as [PDS-H](https://pola.rs/posts/benchmarks/), with its queries in
 the polars-benchmark repository.
 
-Nanuq 0.2 can run 13 of the 22: q1, q3, q4, q5, q6, q10, q11, q12, q15, q17, q18, q19 and
-q21. The others need string functions (q2, q9, q13, q14, q16, q20, q22) or the year of a
-date (q7, q8), which come with Nanuq 0.3.
+Nanuq 0.3 runs all 22. (Nanuq 0.2 ran 13 of them: the others need string functions or
+the year of a date, which came with 0.3.)
 """
 
 nanuq """
-Nanuq has no dates yet, so both sides read the dates as strings: ISO dates such as
-`"1995-03-15"` sort in the same order as the dates, so comparing them gives the same
-rows. The Python queries are the originals with `date(1995, 3, 15)` written as
-`pl.lit("1995-03-15")` (a plain string in `is_between` would be a column name). In Nim, column names that Python passes as strings are `col(...)`, keys
-are lists and `pl.len()` is the length of a column. q21 counts late suppliers with a
-separate group-by and a join, since Nanuq has no `Expr.filter` yet.
+The Python queries are the originals, unchanged; both sides read the CSV files with
+`tryParseDates`, so the date columns are dates. In Nim, Python's `date(1995, 3, 15)` is
+Nanuq's `date(1995, 3, 15)`, column names that Python passes as strings are `col(...)`,
+keys are lists, `pl.len()` is the length of a column and `when/then/otherwise` is
+`choose`. One query takes a detour for an expression Nanuq does not have yet: q20 takes the
+unique keys with the frame's `unique` (no `Expr.unique`).
 """
 
 nbText: """
@@ -56,9 +55,10 @@ proc tpchData(scale: string): string =
 type Query = tuple[n: int, run: proc (t: Tables): LazyFrame]
 
 proc queries(scale: float): seq[Query] =
-  @[(1, q1), (3, q3), (4, q4), (5, q5), (6, q6), (10, q10),
-    (11, proc (t: Tables): LazyFrame = q11(t, scale)),
-    (12, q12), (15, q15), (17, q17), (18, q18), (19, q19), (21, q21)]
+  @[(1, q1), (2, q2), (3, q3), (4, q4), (5, q5), (6, q6), (7, q7), (8, q8), (9, q9),
+    (10, q10), (11, proc (t: Tables): LazyFrame = q11(t, scale)),
+    (12, q12), (13, q13), (14, q14), (15, q15), (16, q16), (17, q17), (18, q18),
+    (19, q19), (20, q20), (21, q21), (22, q22)]
 
 proc pyCall(n: int, scale: float, engine = "in-memory"): string =
   "q" & $n & "(**_tables" & (if n == 11: ", scale_factor=" & $scale else: "") &

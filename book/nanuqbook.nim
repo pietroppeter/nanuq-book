@@ -14,6 +14,7 @@ type Source* = object
   authors*: string           ## who wrote it
   license*, licenseUrl*: string
   changes*: string           ## what this port changes, in one or two sentences
+  codeOnly*: bool            ## only the code is reused (a book): the text is the Nanuq book's own
 
 proc noteHtml(label, text: string): string =
   "<aside class=\"nq-note\"><p class=\"nq-note-label\">" & label & "</p>" &
@@ -29,8 +30,13 @@ template attribution*(s: Source) =
   ## licence, and what changed.
   nbRawHtml: noteHtml("🐻‍❄️ About this port", "**Ported from** [" & s.title & "](" & s.url &
     ") by " & s.authors & ", licensed under [" & s.license & "](" & s.licenseUrl & "). " &
-    "The text of the original is kept as it is; the Nanuq book's own remarks are in " &
-    "boxes like this one. " & s.changes)
+    (if s.codeOnly:
+      "The licence covers the code, not the book's text: the code, section headings and " &
+      "data are the original's, the text between them is the Nanuq book's own. The book " &
+      "explains it all much better. "
+    else:
+      "The text of the original is kept as it is; the Nanuq book's own remarks are in " &
+      "boxes like this one. ") & s.changes)
 
 const polarsGuide* = Source(
   authors: "the Polars contributors",
@@ -43,6 +49,26 @@ proc userGuide*(title, path: string, changes: string): Source =
   result.title = "“" & title & "” in the Polars user guide"
   result.url = "https://docs.pola.rs/user-guide/" & path & "/"
   result.changes = changes
+
+proc definitiveGuide*(chapter: int, title, changes: string): Source =
+  ## A chapter of "Python Polars: The Definitive Guide" (O'Reilly, 2025), from its code
+  ## repository (MIT).
+  Source(title: "Chapter " & $chapter & ", “" & title & "”, of *Python Polars: The Definitive " &
+           "Guide* (O'Reilly, 2025)",
+         url: "https://github.com/jeroenjanssens/python-polars-the-definitive-guide/blob/main/ch" &
+           align($chapter, 2, '0') & ".ipynb",
+         authors: "Jeroen Janssens and Thijs Nieuwdorp",
+         license: "MIT", licenseUrl: "https://github.com/jeroenjanssens/python-polars-the-definitive-guide/blob/main/LICENSE",
+         changes: changes, codeOnly: true)
+
+proc polarsCookbook*(chapter: int, title, changes: string): Source =
+  ## A chapter of "Polars Cookbook" (Packt, 2024), from its code repository (MIT).
+  Source(title: "Chapter " & $chapter & ", “" & title & "”, of *Polars Cookbook* (Packt, 2024)",
+         url: "https://github.com/PacktPublishing/Polars-Cookbook/blob/main/Chapter" &
+           align($chapter, 2, '0') & "/ch" & align($chapter, 2, '0') & ".ipynb",
+         authors: "Yuki Kakegawa",
+         license: "MIT", licenseUrl: "https://github.com/PacktPublishing/Polars-Cookbook/blob/main/LICENSE",
+         changes: changes, codeOnly: true)
 
 # ---------------------------------------------------------------------------
 # Python, run for real

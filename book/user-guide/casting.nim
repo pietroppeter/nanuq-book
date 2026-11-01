@@ -108,7 +108,8 @@ results in an error thrown by Polars:
 """
 
 nanuq """
-In Nanuq, the Polars error arrives as a `NanuqError`, with Polars' message.
+In Nanuq, the Polars error arrives with the same type as in Python, `InvalidOperationError`
+(a subtype of `PolarsError`), and with Polars' message.
 """
 
 tabs """
@@ -123,7 +124,7 @@ except InvalidOperationError as err:
   nbCode:
     try:
       echo df.select(col("big_integers").cast(Int8))
-    except NanuqError as err:
+    except InvalidOperationError as err:
       echo err.msg
 
 nbText: """
@@ -193,7 +194,7 @@ except InvalidOperationError as err:
     let badFloats = newDataFrame(series("floats", ["4.0", "5.8", "- 6 . 3"]))
     try:
       echo badFloats.select(col("floats").cast(Float64))
-    except NanuqError as err:
+    except InvalidOperationError as err:
       echo err.msg
 
 nbText: """

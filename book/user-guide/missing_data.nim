@@ -240,10 +240,10 @@ And it might also arise as the result of a computation:
 """
 
 nanuq """
-In Nanuq 0.2, `/` between two integer columns is an integer division, as in Rust Polars,
-while Python's `/` always divides as floats. So the Nim side casts the dividend to `float`
-first. This choice is debated and may change in a later Nanuq: `/` could become a float
-division, as in Python Polars and in Nim itself, leaving integer division to `div`.
+Since Nanuq 0.3, `/` is true division, as in Python Polars and in Nim itself: integers
+divide to floats, and a division by zero gives `NaN` or `inf`. Integer (floor) division is
+`div`. (In Nanuq 0.2, `/` between integer columns was an integer division, as in Rust
+Polars.)
 """
 
 tabs """
@@ -257,7 +257,7 @@ df.select(pl.col("dividend") / pl.col("divisor"))
 """:
   nbCode:
     let df3 = newDataFrame(series("dividend", [1, 0, -1]), series("divisor", [1, 0, -1]))
-    let divided = df3.select(col("dividend").cast(float) / col("divisor"))
+    let divided = df3.select(col("dividend") / col("divisor"))
     nbShow divided
 
 nbText: """

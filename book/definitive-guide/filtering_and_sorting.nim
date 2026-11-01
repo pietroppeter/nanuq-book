@@ -156,16 +156,11 @@ nbText: """
 `bottom_k` the smallest.
 """
 
-nanuq """
-Nanuq has `topK` and `topKBy` on expressions but no `top_k` on a dataframe yet:
-`all().topKBy("price", 3)` takes the same rows from every column.
-"""
-
 tabs """
 tools.top_k(3, by="price")
 """:
   nbCode:
-    nbShow tools.select(all().topKBy("price", 3))
+    nbShow tools.topK(3, by = "price")
 
 nbText: """
 ### Sampling

@@ -316,8 +316,8 @@ values down (or up, with a negative number).
 """
 
 nanuq """
-The interpolation method is a value of the enum `InterpolationMethod`: `Linear` or
-`Nearest`.
+Python's `method` is `how` in Nanuq (as for `rank` and `corr`), a value of the enum
+`InterpolationMethod`: `Linear` or `Nearest`.
 """
 
 tabs """
@@ -341,8 +341,8 @@ tabs """
     ).withColumns(
       col.x.backwardFill.alias("backward_fill"),
       col.x.forwardFill(limit = 1).alias("forward_fill"),
-      col.x.interpolate(InterpolationMethod.Linear).alias("interp1"),
-      col.x.interpolate(InterpolationMethod.Nearest).alias("interp2"),
+      col.x.interpolate(how = InterpolationMethod.Linear).alias("interp1"),
+      col.x.interpolate(how = InterpolationMethod.Nearest).alias("interp2"),
       col.x.shift(1).alias("shift1"),
       col.x.shift(-2).alias("shift2"))
 

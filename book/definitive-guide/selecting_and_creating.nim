@@ -297,12 +297,7 @@ tabs """
         (col.mass / pow(col.height / 100, 2)).alias("bmi"),
         col.species)
       .dropNulls()
-      .select(all().topKBy("bmi", 5))
-
-nanuq """
-Nanuq has no `top_k` on a dataframe yet; `all().topKBy("bmi", 5)` takes the same rows from
-every column.
-"""
+      .topK(5, by = "bmi")
 
 nbText: "A literal is broadcast to every row:"
 

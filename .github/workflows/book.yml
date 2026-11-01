@@ -6,10 +6,27 @@ name: Book
 # -d:nanuqLib=prebuilt, so the build fails unless Nanuq's lib version is released
 # (lib-v<version> on GitHub). The weekly build against main fails while main is on a
 # -dev lib version.
+# Builds are incremental: a chapter reruns only when a file it depends on changed (its
+# record is in its JSON on the live site); see bookbuild.nim.
 on:
   push:
     branches: [main]
+    # files no chapter reads (Markdown chapters live in book/, so not **.md)
+    paths-ignore:
+      - README.md
+      - LICENSE
+      - licenses/**
+      - scripts/**
+      - .gitignore
+      - .claude/**
   pull_request:
+    paths-ignore:
+      - README.md
+      - LICENSE
+      - licenses/**
+      - scripts/**
+      - .gitignore
+      - .claude/**
   schedule:
     - cron: "0 6 * * 1"  # Mondays
   workflow_dispatch:
@@ -18,6 +35,15 @@ on:
         description: "Build against Nanuq's main branch instead of the pinned commit"
         type: boolean
         default: false
+      force:
+        description: "Rerun every chapter, even the ones whose inputs did not change"
+        type: boolean
+        default: false
+
+# A new push to a pull request cancels the run of the previous one; main runs one at a time.
+concurrency:
+  group: book-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   build:
@@ -36,12 +62,43 @@ jobs:
         with:
           nim-version: "2.2.4"
           repo-token: ${{ secrets.GITHUB_TOKEN }}
-      - run: sudo apt-get update && sudo apt-get install -y libpcre3
+      # libpcre3 for nimib's markdown (the runner already has strace, which bookbuild.nim
+      # uses to record the files each chapter reads). Its .deb is cached: the Ubuntu
+      # mirror alone took from 6 s to 60 s per run.
+      - uses: actions/cache@v4
+        with:
+          path: ~/debs
+          key: libpcre3-ubuntu-24.04
+      - run: |
+          if ! ls ~/debs/libpcre3_*.deb > /dev/null 2>&1; then
+            mkdir -p ~/debs && cd ~/debs
+            apt-get download libpcre3 || (sudo apt-get update && apt-get download libpcre3)
+          fi
+          sudo dpkg -i ~/debs/libpcre3_*.deb
+      # Nim packages, from the cache (nimble install then only checks them)
+      - uses: actions/cache@v4
+        with:
+          path: ~/.nimble
+          key: nimble-2.2.4-${{ hashFiles('nanuqbook.nimble') }}
+          # a change to the tasks only also changes the key: start from the last cache
+          restore-keys: nimble-2.2.4-
       - run: nimble install -y --depsOnly
+      # Nanuq's prebuilt lib (~/.cache/nanuq/<version>): its version and checksums are in
+      # the submodule, so the key follows the Nanuq commit in use (also for the main build)
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/nanuq
+          key: nanuq-lib-${{ hashFiles('nanuq/src/nanuq/lib-sums.txt', 'nanuq/src/rust/Cargo.toml') }}
       # The Python side of the tabs runs the original Polars code (pyproject.toml, uv.lock)
       - uses: astral-sh/setup-uv@v6
       - run: uv sync --locked
+      # Starts from the chapter JSON of the live book and reruns only the chapters whose
+      # inputs changed (bookbuild.nim); every page is then rendered from the JSON.
+      # A manual run can rerun them all.
       - run: uv run nimble genbook
+        env:
+          BOOK_FROM: https://pietroppeter.github.io/nanuq-book
+          BOOK_FORCE: ${{ inputs.force == true }}
       # nimibook writes a .log next to a chapter that failed to build
       - name: Check that every chapter built
         run: |

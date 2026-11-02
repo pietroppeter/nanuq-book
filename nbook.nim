@@ -70,6 +70,7 @@ var book = initBookWithToc:
     entry("String manipulations", "string_manipulations")
     entry("Debugging chained operations", "debugging_chains")
   section("Modern Polars", "modern-polars/index.md"):
+    entry("Method chaining", "method_chaining")
     entry("Reshaping and tidy data", "tidy")
     entry("Timeseries", "timeseries")
   section("Benchmarks", "benchmarks/index.md"):

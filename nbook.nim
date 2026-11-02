@@ -76,6 +76,7 @@ var book = initBookWithToc:
   section("Benchmarks", "benchmarks/index.md"):
     entry("One Billion Row Challenge", "one_billion_rows")
     entry("PDS-H queries", "pds_h")
+    entry("Group-by and join (db-benchmark)", "db_benchmark")
   entry("Sources and licences", "licences.md", numbered = false)
 
 nimibookCli(book)

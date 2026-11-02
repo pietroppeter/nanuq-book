@@ -90,7 +90,7 @@ result
     let acc = lit(0)
 
     nbShow df.select(
-      acc + col("a") + col("b"),
+      acc + col.a + col.b,
       fold(acc = acc, f = add, exprs = col("a", "b")).alias("sum_fold"))
 
 nanuq """
@@ -222,6 +222,6 @@ result
       a: ["a", "b", "c"]
       b: [1, 2, 3]
 
-    nbShow df3.select(concatStr([col("a"), col("b")]))
+    nbShow df3.select(concatStr([col.a, col.b]))
 
 bookSave()

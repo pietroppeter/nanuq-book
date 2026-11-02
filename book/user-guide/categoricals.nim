@@ -303,10 +303,9 @@ at how encodings work, see [the performance section below](#data-type-categorica
 """
 
 nanuq """
-The physical encoding of a categorical column is `toPhysical`, and its categories are
-`cat.getCategories`, as in Rust Polars (Python Polars 2 removed `cat.get_categories`, so
-the Python side reads the categories from the dtype). A Nim enum's categories are all of
-its values, also those the column does not hold:
+The physical encoding of a categorical column is `toPhysical`. Polars 2 removed
+`cat.get_categories`, so both tabs read the categories of an `Enum` from its dtype. A Nim
+enum's categories are all of its values, also those the column does not hold:
 """
 
 tabs """
@@ -315,7 +314,7 @@ pl.DataFrame({"bears": bears_enum.categories})
   nbCode:
     let polarOnly = newDataFrame:
       bears: [Polar, Polar]
-    nbShow polarOnly.select(col.bears.cat.getCategories)
+    nbShow newDataFrame(series("bears", polarOnly.dtype("bears").categories))
 
 nbText: """
 ## Performance considerations on categorical data types

@@ -42,8 +42,12 @@ pl.concat([df_v1, df_v2], how="vertical")
   nbCode:
     import nanuq
 
-    let dfV1 = newDataFrame(series("a", [1]), series("b", [3]))
-    let dfV2 = newDataFrame(series("a", [2]), series("b", [4]))
+    let dfV1 = newDataFrame:
+      a: [1]
+      b: [3]
+    let dfV2 = newDataFrame:
+      a: [2]
+      b: [4]
     let dfVerticalConcat = concat([dfV1, dfV2], how = Vertical)
     nbShow dfVerticalConcat
 
@@ -62,8 +66,13 @@ df_h2 = pl.DataFrame({"r1": [5, 6], "r2": [7, 8], "r3": [9, 10]})
 pl.concat([df_h1, df_h2], how="horizontal")
 """:
   nbCode:
-    let dfH1 = newDataFrame(series("l1", [1, 2]), series("l2", [3, 4]))
-    let dfH2 = newDataFrame(series("r1", [5, 6]), series("r2", [7, 8]), series("r3", [9, 10]))
+    let dfH1 = newDataFrame:
+      l1: [1, 2]
+      l2: [3, 4]
+    let dfH2 = newDataFrame:
+      r1: [5, 6]
+      r2: [7, 8]
+      r3: [9, 10]
     let dfHorizontalConcat = concat([dfH1, dfH2], how = Horizontal)
     nbShow dfHorizontalConcat
 
@@ -92,8 +101,12 @@ df_d2 = pl.DataFrame({"a": [2], "d": [4]})
 pl.concat([df_d1, df_d2], how="diagonal")
 """:
   nbCode:
-    let dfD1 = newDataFrame(series("a", [1]), series("b", [3]))
-    let dfD2 = newDataFrame(series("a", [2]), series("d", [4]))
+    let dfD1 = newDataFrame:
+      a: [1]
+      b: [3]
+    let dfD2 = newDataFrame:
+      a: [2]
+      d: [4]
     let dfDiagonalConcat = concat([dfD1, dfD2], how = Diagonal)
     nbShow dfDiagonalConcat
 

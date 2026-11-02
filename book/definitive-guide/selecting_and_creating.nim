@@ -382,10 +382,10 @@ rebel_quotes = pl.Series(
   nbCode:
     let rebelNames = rebels.select(col.name)
     let rebelColors = rebels.select(col("^.*_color$"))
-    let rebelQuotes = newDataFrame(series("quote", [
-      "You know, sometimes I amaze myself.",
-      "That doesn't sound too hard.",
-      "I have a bad feeling about this."]))
+    let rebelQuotes = newDataFrame:
+      quote: ["You know, sometimes I amaze myself.",
+              "That doesn't sound too hard.",
+              "I have a bad feeling about this."]
 
     nbShow concat([rebelNames, rebelColors, rebelQuotes], how = Horizontal)
 

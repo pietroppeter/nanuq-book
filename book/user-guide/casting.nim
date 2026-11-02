@@ -48,10 +48,10 @@ df
   nbCode:
     import nanuq
 
-    let df = newDataFrame(
-      series("integers", [1, 2, 3]),
-      series("big_integers", [10000002, 2, 30000003]),
-      series("floats", [4.0, 5.8, -6.3]))
+    let df = newDataFrame:
+      integers: [1, 2, 3]
+      big_integers: [10000002, 2, 30000003]
+      floats: [4.0, 5.8, -6.3]
     nbShow df
 
 nbText: """
@@ -67,8 +67,8 @@ df.select(
 """:
   nbCode:
     let numbers = df.select(
-      col("integers").cast(Float32).alias("integers_as_floats"),
-      col("floats").cast(Int32).alias("floats_as_integers"))
+      col.integers.cast(Float32).alias("integers_as_floats"),
+      col.floats.cast(Int32).alias("floats_as_integers"))
     nbShow numbers
 
 nbText: """
@@ -94,8 +94,8 @@ df.with_columns(
 """:
   nbCode:
     let downcast = df.withColumns(
-      col("integers").cast(int16),
-      col("floats").cast(float32))
+      col.integers.cast(int16),
+      col.floats.cast(float32))
     nbShow downcast
 
 nbText: """
@@ -123,7 +123,7 @@ except InvalidOperationError as err:
 """:
   nbCode:
     try:
-      echo df.select(col("big_integers").cast(Int8))
+      echo df.select(col.big_integers.cast(Int8))
     except InvalidOperationError as err:
       echo err.msg
 
@@ -136,7 +136,7 @@ tabs """
 df.select(pl.col("big_integers").cast(pl.Int8, strict=False))
 """:
   nbCode:
-    let overflow = df.select(col("big_integers").cast(Int8, strict = false))
+    let overflow = df.select(col.big_integers.cast(Int8, strict = false))
     nbShow overflow
 
 nbText: """
@@ -162,15 +162,15 @@ df.select(
 )
 """:
   nbCode:
-    let strings = newDataFrame(
-      series("integers_as_strings", ["1", "2", "3"]),
-      series("floats_as_strings", ["4.0", "5.8", "-6.3"]),
-      series("floats", [4.0, 5.8, -6.3]))
+    let strings = newDataFrame:
+      integers_as_strings: ["1", "2", "3"]
+      floats_as_strings: ["4.0", "5.8", "-6.3"]
+      floats: [4.0, 5.8, -6.3]
 
     let parsed = strings.select(
-      col("integers_as_strings").cast(Int32),
-      col("floats_as_strings").cast(Float64),
-      col("floats").cast(String))
+      col.integers_as_strings.cast(Int32),
+      col.floats_as_strings.cast(Float64),
+      col.floats.cast(String))
     nbShow parsed
 
 nbText: """
@@ -191,9 +191,10 @@ except InvalidOperationError as err:
     print(err)
 """:
   nbCode:
-    let badFloats = newDataFrame(series("floats", ["4.0", "5.8", "- 6 . 3"]))
+    let badFloats = newDataFrame:
+      floats: ["4.0", "5.8", "- 6 . 3"]
     try:
-      echo badFloats.select(col("floats").cast(Float64))
+      echo badFloats.select(col.floats.cast(Float64))
     except InvalidOperationError as err:
       echo err.msg
 
@@ -224,15 +225,15 @@ df.select(
 )
 """:
   nbCode:
-    let mixed = newDataFrame(
-      series("integers", [-1, 0, 2, 3, 4]),
-      series("floats", [0.0, 1.0, 2.0, 3.0, 4.0]),
-      series("bools", [true, false, true, false, true]))
+    let mixed = newDataFrame:
+      integers: [-1, 0, 2, 3, 4]
+      floats: [0.0, 1.0, 2.0, 3.0, 4.0]
+      bools: [true, false, true, false, true]
 
     let booleans = mixed.select(
-      col("integers").cast(Boolean),
-      col("floats").cast(Boolean),
-      col("bools").cast(Int8))
+      col.integers.cast(Boolean),
+      col.floats.cast(Boolean),
+      col.bools.cast(Int8))
     nbShow booleans
 
 nanuq """

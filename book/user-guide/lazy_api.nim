@@ -27,8 +27,8 @@ df_agg
     import nanuq
 
     let df = readCsv("data/polars/iris.csv")
-    let dfSmall = df.filter(col("sepal_length") > 5)
-    let dfAgg = dfSmall.groupBy("species").agg(col("sepal_width").mean)
+    let dfSmall = df.filter(col.sepal_length > 5)
+    let dfAgg = dfSmall.groupBy("species").agg(col.sepal_width.mean)
     nbShow dfAgg
 
 nanuq """
@@ -67,9 +67,9 @@ df
 """:
   nbCode:
     let q = scanCsv("data/polars/iris.csv")
-      .filter(col("sepal_length") > 5)
-      .groupBy(col("species"))
-      .agg(col("sepal_width").mean)
+      .filter(col.sepal_length > 5)
+      .groupBy(col.species)
+      .agg(col.sepal_width.mean)
 
     let lazyDf = q.collect
     nbShow lazyDf

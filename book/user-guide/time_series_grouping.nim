@@ -59,7 +59,7 @@ df_with_year
 """:
   nbCode:
     let annualAverageDf = df.groupByDynamic("Date", every = "1y")
-      .agg(col("Close").mean)
+      .agg(col.Close.mean)
 
     let dfWithYear = annualAverageDf.withColumns(col("Date").dt.year.alias("year"))
     nbShow dfWithYear
@@ -186,8 +186,8 @@ df.group_by_dynamic("time", every="1mo", period="1mo", closed="left").agg(
 
     nbShow days.groupByDynamic("time", every = "1mo", period = "1mo",
                                closed = ClosedWindow.Left).agg(
-      col("time").cumCount.reverse.head(3).alias("day/eom"),
-      ((col("time") - col("time").first).last.dt.totalDays + 1).alias("days_in_month"))
+      col.time.cumCount.reverse.head(3).alias("day/eom"),
+      ((col.time - col.time.first).last.dt.totalDays + 1).alias("days_in_month"))
 
 nanuq """
 `dateRange` is an expression, so Nanuq selects it from an empty frame (there is no
@@ -270,7 +270,7 @@ df.group_by_dynamic(
       "time",
       every = "1h",
       closed = ClosedWindow.Both,
-      groupBy = [col("groups")],
+      groupBy = [col.groups],
       includeBoundaries = true,
     ).agg(len())
     nbShow byHour

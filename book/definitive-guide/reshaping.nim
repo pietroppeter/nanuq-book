@@ -252,9 +252,9 @@ lf.group_by(index).agg(
       series("col2", ["x", "x", "x", "x", "y", "y"]),
       series("col3", [6, 7, 3, 2, 5, 7])).lazy
 
-    let index = col("col1")
-    let on = col("col2")
-    let values = col("col3")
+    let index = col.col1
+    let on = col.col2
+    let values = col.col3
     let uniqueColumnValues = ["x", "y"]
     proc aggregateFunction(c: Expr): Expr = c.tanh.mean
 
@@ -309,14 +309,14 @@ df = pl.DataFrame(
 df
 """:
   nbCode:
-    let df = newDataFrame(
-      series("student", ["Jeroen", "Thijs", "Ritchie", "Jeroen", "Thijs", "Ritchie"]),
-      series("class", ["Math101", "Math101", "Math101", "Math102", "Math102", "Math102"]),
-      series("age", [20, 21, 22, 20, 21, 22]),
-      series("semester", ["Fall", "Fall", "Fall", "Spring", "Spring", "Spring"]),
-      series("math", [85, 78, 92, 88, 79, 95]),
-      series("science", [90, 82, 85, 92, 81, 87]),
-      series("history", [88, 80, 87, 85, 82, 89]))
+    let df = newDataFrame:
+      student: ["Jeroen", "Thijs", "Ritchie", "Jeroen", "Thijs", "Ritchie"]
+      class: ["Math101", "Math101", "Math101", "Math102", "Math102", "Math102"]
+      age: [20, 21, 22, 20, 21, 22]
+      semester: ["Fall", "Fall", "Fall", "Spring", "Spring", "Spring"]
+      math: [85, 78, 92, 88, 79, 95]
+      science: [90, 82, 85, 92, 81, 87]
+      history: [88, 80, 87, 85, 82, 89]
     nbShow df
 
 tabs """

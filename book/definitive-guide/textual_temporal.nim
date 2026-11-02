@@ -175,7 +175,7 @@ nanuq """
 The book's next cells wrap the frames in `pl.StringCache()`, which older versions of
 Polars needed to join two categorical columns. It is a no-op now, and Nanuq has no string
 cache: joins on categoricals just work. The book's `cat.get_categories` is gone from
-Python Polars 2; Nanuq keeps Rust's `cat.getCategories`.
+Polars 2, in Python and in Nanuq.
 """
 
 nbText: """
@@ -272,7 +272,7 @@ tabs """
 dates.with_columns(formatted_date=pl.col("date").dt.to_string("%d-%m-%Y"))
 """:
   nbCode:
-    nbShow dates.withColumns(col("date").dt.toString("%d-%m-%Y").alias("formatted_date"))
+    nbShow dates.withColumns(col.date.dt.toString("%d-%m-%Y").alias("formatted_date"))
 
 nanuq """
 `col("date")` with a string: `col.date` would be the `date` proc, Nanuq's date literal.
@@ -440,12 +440,11 @@ events = pl.DataFrame(
 events
 """:
   nbCode:
-    let events = newDataFrame(
-      series("location", ["Paris", "Amsterdam", "Barcelona"]),
-      series("temperatures", [
-        [23, 27, 21, 22, 24, 23, 22],
-        [17, 19, 15, 22, 18, 20, 21],
-        [30, 32, 28, 29, 34, 33, 31]]))
+    let events = newDataFrame:
+      location: ["Paris", "Amsterdam", "Barcelona"]
+      temperatures: [[23, 27, 21, 22, 24, 23, 22],
+                     [17, 19, 15, 22, 18, 20, 21],
+                     [30, 32, 28, 29, 34, 33, 31]]
 
     nbShow events
 
@@ -531,9 +530,9 @@ order_details_df.select(
   nbCode:
     nbShow orderDetails.select(
       col.amount,
-      col("date"),
+      col.date,
       col.items,
-      asStruct(col.amount, col("date"), col.items).alias("order_details"))
+      asStruct(col.amount, col.date, col.items).alias("order_details"))
 
 nanuq """
 `pl.struct` is `asStruct` in Nanuq: `struct` is the namespace.

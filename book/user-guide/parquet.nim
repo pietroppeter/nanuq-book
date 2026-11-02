@@ -30,9 +30,9 @@ df
   nbCode:
     import nanuq
 
-    let written = newDataFrame(
-      series("foo", [1, 2, 3]),
-      series("bar", [none(string), some("bak"), some("baz")]))
+    let written = newDataFrame:
+      foo: [1, 2, 3]
+      bar: [nil, "bak", "baz"]
     written.writeParquet("data/polars/path.parquet")
     nbShow written
 

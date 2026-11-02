@@ -453,7 +453,7 @@ tabs """
 """:
   nbCode:
     nbShow salesWithCampaignDf.groupBy("Product Type", "Campaign Name")
-      .agg(col("Quantity").mean)
+      .agg(col.Quantity.mean)
       .sort(["Product Type", "Campaign Name"])
 
 nbText: """
@@ -549,8 +549,8 @@ pl.concat([df1, df2], how="horizontal_extend")
 
 nanuq """
 Since Python Polars 2.0, `how="horizontal"` refuses frames of different heights, and
-`"horizontal_extend"` pads them, so the Python side uses that. Nanuq follows Rust Polars
-0.55, whose `Horizontal` still pads.
+`"horizontal_extend"` pads them, so the Python side uses that. Nanuq's `Horizontal` pads,
+like `"horizontal_extend"`.
 """
 
 nbText: """

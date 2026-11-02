@@ -238,8 +238,8 @@ x = [42.0, math.nan, None, math.inf, -math.inf]
 )
 """:
   nbCode:
-    let xs = newDataFrame(series("x", [some(42.0), some(NaN), none(float), some(Inf),
-                                       some(-Inf)]))
+    let xs = newDataFrame:
+      x: [42.0, NaN, nil, Inf, -Inf]
     nbShow xs.withColumns(
       col.x.fillNan(999).alias("fill_nan"),
       col.x.fillNull(0).alias("fill_null"),
@@ -593,7 +593,7 @@ df_ints.slice(400, 6)
     let dfInts = newDataFrame(series("x", toSeq(0 ..< 10_000)))
       .sample(1_729, withReplacement = true, seed = 1729)
       .withRowIndex()
-      .withColumns(`when`(col("index") != 403).then(col.x).alias("x"))
+      .withColumns(`when`(col.index != 403).then(col.x).alias("x"))
     nbShow dfInts.slice(400, 6)
 
 tabs """
@@ -721,7 +721,8 @@ numbers = [33, 33, 27, 33, 60, 60, 60, 33, 60]
 )
 """:
   nbCode:
-    let numbers = newDataFrame(series("x", [33, 33, 27, 33, 60, 60, 60, 33, 60]))
+    let numbers = newDataFrame:
+      x: [33, 33, 27, 33, 60, 60, 60, 33, 60]
     nbShow numbers.select((col.x >= 60).argTrue.alias("arg_true"))
 
 tabs """

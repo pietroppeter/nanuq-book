@@ -75,6 +75,8 @@ jobs:
             apt-get download libpcre3 || (sudo apt-get update && apt-get download libpcre3)
           fi
           sudo dpkg -i ~/debs/libpcre3_*.deb
+      # lld links each chapter in under a second instead of ~9 s with GNU ld (config.nims)
+      - run: which ld.lld || sudo apt-get install -y --no-install-recommends lld
       # Nim packages, from the cache (nimble install then only checks them)
       - uses: actions/cache@v4
         with:

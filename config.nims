@@ -8,3 +8,10 @@ switch("path", thisDir() / "book")
 # local work on an unreleased Nanuq.
 switch("define", "nanuqLib=prebuilt")
 switch("path", thisDir() / "bench")
+# Linking the static Polars library (~300 MB) is most of a chapter's build: GNU ld takes
+# ~9 s per binary, lld ~0.7 s once the debug info (only the library's, Nim's stack
+# traces don't use it) is left out. Used when lld is installed (Linux only).
+when defined(linux) and not defined(nanuqKeepDebugInfo):
+  if findExe("ld.lld").len > 0:
+    switch("passL", "-fuse-ld=lld")
+    switch("passL", "-Wl,--strip-debug")

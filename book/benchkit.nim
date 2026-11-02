@@ -8,7 +8,7 @@
 ##   benchmark at full size, times the Nim and the Python queries, writes a timestamped
 ##   JSON file with the timings and the machine's specs to `results/<bench>/`, and
 ##   commits it.
-import std/[json, os, osproc, strutils, times, monotimes, sequtils, math, xmltree]
+import std/[json, options, os, osproc, strutils, times, monotimes, sequtils, math, xmltree]
 import nanuq
 import nanuqbook
 
@@ -95,6 +95,27 @@ proc saveResult*(bench: string, params, timings: JsonNode): string =
     quoteShell("Benchmark result: " & bench & " " & name) & " -- " & quoteShell(result))
   if code == 0: echo "[bench] committed ", result
   else: echo "[bench] could not commit ", result, ":\n", o
+
+proc markdownTable*(df: DataFrame, boldLast = false): string =
+  ## `df` as a Markdown table, as readers want it: capitalised headers, seconds with two
+  ## decimals, rows with separators, "-" for nulls. `boldLast` is for a row of totals.
+  let names = df.columns
+  result = "| " & names.mapIt(it.capitalizeAscii).join(" | ") & " |\n| " &
+    names.mapIt(if df.dtype(it) == String: "---" else: "--:").join(" | ") & " |\n"
+  for i in 0 ..< df.height:
+    var cells: seq[string]
+    for name in names:
+      let dtype = df.dtype(name)
+      var cell = "-"
+      if dtype == Float64:
+        let x = df[name, i, Option[float]]
+        if x.isSome: cell = formatFloat(x.get, ffDecimal, 2) & " s"
+      elif dtype == Int64:
+        cell = insertSep($df[name, i, int], ',')
+      else:
+        cell = df[name, i, string]
+      cells.add (if boldLast and i == df.height - 1 and cell != "-": "**" & cell & "**" else: cell)
+    result.add "| " & cells.join(" | ") & " |\n"
 
 proc queryTabs*(nimSrc, pySrc: string, nimFrame: DataFrame, pyCall: string): string =
   ## A query's Nim and Python source in tabs, each with the table it gives (the Python

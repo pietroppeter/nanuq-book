@@ -63,10 +63,23 @@ when defined(bench):
 nbText: """
 ## Results
 
+One table per run of the full benchmark on someone's machine: for each query, the best of
+the timed runs, in seconds, reading the CSV files included. A dash means the run did not
+use that engine: older runs timed Nanuq with one engine only, and runs with Nanuq 0.2 have
+13 queries, so compare totals only between runs with the same number of queries.
+"""
+
+nbText: ""  # the tables, filled in below from the Polars query
+let summary = nb.blk.NbText
+
+nbText: """
+## How the tables are made
+
 Each run of the full benchmark leaves a JSON file in
 [`results/pdsh/`](https://github.com/pietroppeter/nanuq-book/tree/main/results/pdsh), with
-the machine, the versions and, for each engine and query, three timings. The tables below
-are a Polars query over those files, so they are built like everything else in this book.
+the machine, the versions and, for each engine and query, three timings. The tables above
+are a Polars query over those files, so they come from the same tools as everything else
+in this book.
 
 The timings are two structs deep: engines, then queries. Two rounds of `unnest` and
 `unpivot` turn each file into a long table with one row per engine and query, and
@@ -120,15 +133,14 @@ times.head(3)
         .unnest("queries")
         .unpivot(index = index & "engine", variableName = "query", valueName = "seconds")
 
-    let times = concat(sorted(toSeq(walkFiles("../results/pdsh/*.json"))).mapIt(timings(it)),
-                       how = ConcatMethod.Vertical)
+    let paths = sorted(toSeq(walkFiles("../results/pdsh/*.json")))
+    let times = concat(paths.mapIt(timings(it)), how = ConcatMethod.Vertical)
       .withColumns(col.seconds.list.min)
     nbShow times.head(3)
 
 nbText: """
 Summing per run and engine, and a `pivot` with one column per engine, gives the total time
-of each run. Early runs have 13 queries, because Nanuq 0.2 could not run the others, so
-compare totals only between runs with the same number of queries.
+of each run:
 """
 
 tabs """
@@ -168,10 +180,33 @@ pl.Config.set_tbl_rows(22)  # the default shows 10 rows
 
 discard runPython("pl.Config.set_tbl_rows(10)")
 
-nanuq """
-Timings are in seconds, reading the CSV files included. A null means the run did not use
-that engine: older runs timed Nanuq with one engine only.
-"""
+const engines = ["nanuq in-memory", "nanuq streaming", "python in-memory", "python streaming"]
+
+proc runTable(date, machine: string): string =
+  ## The table of one run: every engine, a row per query and a row of totals.
+  let cells = engines.mapIt(col.seconds.filter(col.engine == it).first.alias(it))
+  let run = times.filter(col.date == date and col.machine == machine)
+    .groupBy("query", maintainOrder = true).agg(cells)
+  # mean * count, not sum, which gives 0 for an engine the run did not use
+  let totals = run.select(@[lit("total").alias("query")] &
+    engines.mapIt((col(it).mean * col(it).count).alias(it)))
+  markdownTable(concat([run, totals]), boldLast = true)
+
+for path in paths:
+  let run = readJson(path).select(
+    col.timestamp.str.slice(0, 10).alias("date"),
+    col.label.alias("machine"),
+    col.params.struct.field("scaleFactor").alias("scale"),
+    format("{}, {} cores, {} GB, {}. Nanuq {}, Polars {}, Nim {}.",
+           col.system.struct.field("cpu"), col.system.struct.field("cores"),
+           col.system.struct.field("memoryGB"), col.system.struct.field("os"),
+           col.versions.struct.field("nanuqWrapper"),
+           col.versions.struct.field("pythonPolars"),
+           col.versions.struct.field("nim")).alias("about"))
+  let (date, machine) = (run["date", 0, string], run["machine", 0, string])
+  summary.text.add "### " & date & " (" & machine & "), scale factor " &
+    $run["scale", 0, float] & "\n\n" & run["about", 0, string] & "\n\n" &
+    runTable(date, machine) & "\n"
 
 nbText: """
 ## The benchmark

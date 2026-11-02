@@ -42,12 +42,24 @@ when defined(bench):
 nbText: """
 ## Results
 
+Each row is one run of the full benchmark on someone's machine; the times are the best of
+the timed runs, in seconds, reading the file included. A dash means the run did not use
+that engine: older runs timed Nanuq with one engine only, and the in-memory engine needs
+too much memory for one billion rows on a laptop.
+"""
+
+nbText: ""  # the table, filled in below from the Polars query
+let summary = nb.blk.NbText
+
+nbText: """
+## How the table is made
+
 Each run of the full benchmark leaves a JSON file in
 [`results/1brc/`](https://github.com/pietroppeter/nanuq-book/tree/main/results/1brc), with
-the machine, the versions and three timings per engine. The table below is a Polars query
-over those files, so it is built like everything else in this book. The JSON nests the
-timings in a struct, so `unnest` makes each engine a column; runs that skipped an engine
-have no such column, so a diagonal `concat` fills it with nulls.
+the machine, the versions and three timings per engine. The table above is a Polars query
+over those files, so it comes from the same tools as everything else in this book. The JSON
+nests the timings in a struct, so `unnest` makes each engine a column; runs that skipped an
+engine have no such column, so a diagonal `concat` fills it with nulls.
 """
 
 tabs """
@@ -98,11 +110,16 @@ runs.select(
       (col("nanuq in-memory") / col("nanuq streaming")).round(1).alias("streaming gain"))
     nbShow table
 
-nanuq """
-Timings are in seconds, reading the file included. A null means the run did not use that
-engine: older runs timed Nanuq with one engine only, and the in-memory engine needs too
-much memory for one billion rows on a laptop.
-"""
+summary.text = markdownTable(runs.select(
+  format("{} ({})", col.timestamp.str.slice(0, 10), col.label).alias("date"),
+  format("{}, {} cores, {} GB, {}", col.system.struct.field("cpu"),
+         col.system.struct.field("cores"), col.system.struct.field("memoryGB"),
+         col.system.struct.field("os")).alias("machine"),
+  col.params.struct.field("rows"),
+  col(engines).list.min,
+  format("Nanuq {}, Polars {}, Nim {}", col.versions.struct.field("nanuqWrapper"),
+         col.versions.struct.field("pythonPolars"),
+         col.versions.struct.field("nim")).alias("versions")))
 
 nbText: """
 ## The challenge

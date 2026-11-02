@@ -3,6 +3,7 @@ import std/[os, json, strutils]
 bookInit()
 
 const benchRows {.intdefine.} = 1_000_000_000  ## rows of a full run (`-d:benchRows=...`)
+const benchInMemory {.booldefine.} = true  ## also time the in-memory engine (`-d:benchInMemory=false`)
 
 nbText: "# One Billion Row Challenge"
 
@@ -76,14 +77,15 @@ when defined(bench):
     echo "[bench] generating ", benchRows, " rows in ", measurements
     generate(stations, measurements, benchRows)
   echo "[bench] timing Nanuq"
-  let nimMemory = timeIt(benchRuns, proc () = discard onebrc(measurements).collect(Engine.InMemory))
-  let nimStreaming = timeIt(benchRuns, proc () = discard onebrc(measurements).collect(Engine.Streaming))
+  var timings = newJObject()
+  if benchInMemory:
+    timings["nanuq in-memory"] = %timeIt(benchRuns, proc () = discard onebrc(measurements).collect(Engine.InMemory))
+  timings["nanuq streaming"] = %timeIt(benchRuns, proc () = discard onebrc(measurements).collect(Engine.Streaming))
   echo "[bench] timing Python Polars"
-  let pyMemory = timePython(benchRuns, "onebrc(" & escapeJson(measurements) & ").collect(engine='in-memory')")
-  let pyStreaming = timePython(benchRuns, "onebrc(" & escapeJson(measurements) & ").collect(engine='streaming')")
-  discard saveResult("1brc", %*{"rows": benchRows, "runs": benchRuns},
-    %*{"nanuq in-memory": nimMemory, "nanuq streaming": nimStreaming,
-       "python in-memory": pyMemory, "python streaming": pyStreaming})
+  if benchInMemory:
+    timings["python in-memory"] = %timePython(benchRuns, "onebrc(" & escapeJson(measurements) & ").collect(engine='in-memory')")
+  timings["python streaming"] = %timePython(benchRuns, "onebrc(" & escapeJson(measurements) & ").collect(engine='streaming')")
+  discard saveResult("1brc", %*{"rows": benchRows, "runs": benchRuns}, timings)
 
 # --- Results ----------------------------------------------------------------------
 nbText: """
@@ -109,7 +111,7 @@ proc resultsTable(): string =
       insertSep($r["params"]["rows"].getInt, ',') & " | " &
       seconds(best(nanuqTimes(r, "in-memory"))) & " | " &
       seconds(best(nanuqTimes(r, "streaming"))) & " | " &
-      seconds(best(t["python in-memory"])) & " | " &
+      seconds(best(t{"python in-memory"})) & " | " &
       seconds(best(t["python streaming"])) & " | Nanuq " & v["nanuqWrapper"].getStr &
       ", Polars " & v["pythonPolars"].getStr & ", Nim " & v["nim"].getStr & " |\n"
 
@@ -126,7 +128,12 @@ time, about 13 GB for one billion rows, in `bench-data/`, which git ignores):
 scripts/bench 1brc                          # one billion rows, 3 timed runs
 scripts/bench 1brc -d:benchRows=100000000   # fewer rows
 scripts/bench 1brc -d:benchLabel=my-laptop  # a name for your machine
+scripts/bench 1brc -d:benchInMemory=false   # streaming engine only
 ```
+
+The in-memory engine needs far more memory than the streaming one: about 8 GB against
+about 1.4 GB for 100 million rows, measured on Python. On a machine with less than about
+100 GB of memory, run one billion rows with the streaming engine only.
 
 It writes the timings and the machine's specs to a timestamped file in `results/1brc/` and
 commits it; a pull request with that file adds a row to the table above.

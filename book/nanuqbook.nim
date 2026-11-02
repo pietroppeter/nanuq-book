@@ -220,8 +220,22 @@ proc useNanuqBook*(nb: var Nb) =
   # Nim cells come highlighted from nimib; skip nimib's highlight.js
   nb.doc.context["disableHighlightJs"] = %true
 
+proc resetPython*() =
+  ## A fresh Python namespace with Polars' default display options.
+  if pyReady:
+    pyNamespace = pyBuiltinsModule().dict()
+    discard runPython("import polars\npolars.Config.restore_defaults()")
+    pyNamespace = pyBuiltinsModule().dict()
+
+let startDir = getCurrentDir()  # nbInit moves to the book's root; the next chapter starts here again
+
 template bookInit* =
-  ## Starts a chapter: `nbInit` with the book's theme.
+  ## Starts a chapter: `nbInit` with the book's theme. bookbuild.nim runs the chapters
+  ## in one program, so each starts from the default display options of Nanuq and
+  ## Polars, an empty Python namespace and the directory the program started in
+  ## (`bookSave` resets Nanuq's options, as the chapter imports Nanuq after `bookInit`).
+  resetPython()
+  setCurrentDir startDir
   nbInit(theme = useNanuqBook)
 
 proc sourceHtml(nb: Nb): string =
@@ -243,3 +257,4 @@ template bookSave* =
   nbRawHtml: sourceHtml(nb)
   nbSave
   writeFile(nb.doc.filename.changeFileExt("json"), nb.doc.dump())
+  when compiles(resetConfig()): resetConfig()  # for the next chapter in the same program

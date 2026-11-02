@@ -1,0 +1,44 @@
+{
+  "benchmark": "1brc",
+  "timestamp": "2026-11-02T12:00:09Z",
+  "label": "pietro-mac",
+  "params": {
+    "rows": 100000000,
+    "runs": 3
+  },
+  "system": {
+    "os": "macOS 15.7.3",
+    "arch": "arm64",
+    "cpu": "Apple M3 Pro",
+    "cores": 11,
+    "memoryGB": 19.3
+  },
+  "versions": {
+    "nim": "2.2.5",
+    "nanuqWrapper": "0.6.0",
+    "python": "3.13.0",
+    "pythonPolars": "2.1.0"
+  },
+  "timings": {
+    "nanuq in-memory": [
+      5.419732958,
+      4.589816292,
+      4.906533084
+    ],
+    "nanuq streaming": [
+      0.785822084,
+      0.760000542,
+      0.77678725
+    ],
+    "python in-memory": [
+      4.446203375002369,
+      4.122678207990248,
+      4.386346208979376
+    ],
+    "python streaming": [
+      0.7991114999749698,
+      0.7725030419533141,
+      0.7455712920054793
+    ]
+  }
+}

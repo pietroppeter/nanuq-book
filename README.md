@@ -70,8 +70,9 @@ genbook` reruns every chapter. CI starts from the JSON of the published book
 ## Benchmarks
 
 Benchmark chapters (in `book/benchmarks/`) build in two ways. The normal build, and CI,
-run their queries on a small sample only (to check Nim against Python) and show every
-result file in `results/<benchmark>/`. A full run happens only on your machine:
+run their queries on a small sample only (to check Nim against Python) and open with
+every result file in `results/<benchmark>/`, read and shaped with Nanuq and Python Polars
+side by side. A full run happens only on your machine:
 
 ```sh
 scripts/bench 1brc                                              # one billion rows

@@ -19,6 +19,9 @@ var book = initBookWithToc:
     entry("Expression expansion", "expression_expansion")
     entry("Casting", "casting")
     entry("Missing data", "missing_data")
+  section("Polars Rust cookbook", "rust-cookbook/index.md"):
+    entry("Eager cookbook", "eager")
+    entry("Lazy cookbook", "lazy")
     entry("Strings", "strings")
     entry("Categorical data and enums", "categoricals")
     entry("Lists and arrays", "lists_and_arrays")
@@ -76,6 +79,9 @@ var book = initBookWithToc:
   section("Real Python tutorials", "real-python/index.md"):
     entry("Grouping data", "groupby")
     entry("Missing data", "missing_data")
+  section("Polars Rust cookbook", "rust-cookbook/index.md"):
+    entry("Eager cookbook", "eager")
+    entry("Lazy cookbook", "lazy")
   section("Benchmarks", "benchmarks/index.md"):
     entry("One Billion Row Challenge", "one_billion_rows")
     entry("PDS-H queries", "pds_h")

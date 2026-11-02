@@ -80,6 +80,13 @@ proc realPython*(title, slug, folder, changes: string): Source =
            "[materials repository](https://github.com/realpython/materials/tree/master/" &
            folder & "), with its data. " & changes, codeOnly: true)
 
+proc rustCookbook*(title, file, changes: string): Source =
+  ## A cookbook page of the Rust `polars` crate's documentation (crates/polars/src/docs).
+  result = polarsGuide
+  result.title = "the “" & title & "” of the Rust `polars` crate"
+  result.url = "https://github.com/pola-rs/polars/blob/py-2.1.0/crates/polars/src/docs/" & file
+  result.changes = changes
+
 proc modernPolars*(title, page, changes: string): Source =
   ## A chapter of *Modern Polars* by Kevin Heavey (CC BY 4.0), a side-by-side
   ## comparison of Polars and pandas. The ports keep the Polars side.
@@ -192,13 +199,23 @@ proc checkSameFrame*(nimHtml, pythonShown, py: string) =
 
 const nimLabel = "👑 Nim"
 const pythonLabel = "🐍 Python"
+const rustLabel = "🦀 Rust"
 
-proc tabsHtml*(nimSide, pySide: string): string =
-  "<div class=\"nq-tabs\"><div class=\"nq-tablist\" role=\"tablist\">" &
-    "<button class=\"nq-tab\" role=\"tab\" data-lang=\"nim\" aria-selected=\"true\">" & nimLabel & "</button>" &
-    "<button class=\"nq-tab\" role=\"tab\" data-lang=\"python\" aria-selected=\"false\">" & pythonLabel & "</button></div>" &
-    "<div class=\"nq-panel\" data-lang=\"nim\">" & nimSide & "</div>" &
-    "<div class=\"nq-panel\" data-lang=\"python\" hidden>" & pySide & "</div></div>"
+proc tabsHtml*(nimSide, pySide: string, rustSide = ""): string =
+  ## Nim, then Rust (only when given), then Python.
+  proc tab(lang, label: string, selected: bool): string =
+    "<button class=\"nq-tab\" role=\"tab\" data-lang=\"" & lang & "\" aria-selected=\"" &
+      $selected & "\">" & label & "</button>"
+  proc panel(lang, body: string, hidden: bool): string =
+    "<div class=\"nq-panel\" data-lang=\"" & lang & "\"" & (if hidden: " hidden" else: "") &
+      ">" & body & "</div>"
+  result = "<div class=\"nq-tabs\"><div class=\"nq-tablist\" role=\"tablist\">" &
+    tab("nim", nimLabel, true) &
+    (if rustSide.len > 0: tab("rust", rustLabel, false) else: "") &
+    tab("python", pythonLabel, false) & "</div>" &
+    panel("nim", nimSide, false) &
+    (if rustSide.len > 0: panel("rust", rustSide, true) else: "") &
+    panel("python", pySide, true) & "</div>"
 
 proc fileTabs*(nimPath, pyPath: string): string =
   ## Two source files in tabs, shown and not run: a Nim module and its Python twin.
@@ -224,6 +241,20 @@ template tabs*(py: string, body: untyped) =
   let (pySide, pyShown) = pythonHtml(py.strip)
   checkSameFrame(nimSide, pyShown, py.strip)
   nbRawHtml: tabsHtml(nimSide, pySide)
+
+template rustTabs*(rust, py: string, body: untyped) =
+  ## Like `tabs`, with a third tab in the middle: the original Rust code, shown and
+  ## not run (the book never builds Rust). The Nim and Python sides run and are compared.
+  let first = nb.blocks.len
+  body
+  var nimSide = ""
+  for i in first ..< nb.blocks.len:
+    nimSide.add nb.render(nb.blocks[i])
+  nb.blocks.setLen(first)
+  let (pySide, pyShown) = pythonHtml(py.strip)
+  checkSameFrame(nimSide, pyShown, py.strip)
+  nbRawHtml: tabsHtml(nimSide, pySide,
+    "<pre><code class=\"language-rust\">" & xmltree.escape(rust.strip) & "</code></pre>")
 
 template python*(code: string) =
   ## Python that runs without a Nim counterpart (shown in its own block).

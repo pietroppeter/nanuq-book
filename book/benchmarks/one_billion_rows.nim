@@ -62,8 +62,9 @@ onebrc("data/1brc/sample.txt").collect().head(10)
 
 nanuq """
 Python reads the file with a schema, which names the columns too; Nanuq's `scanCsv` has no
-such option yet, so it names them with `rename`. Nanuq also has no streaming engine yet, so
-it only runs Polars' in-memory engine. The Python side is timed with both engines.
+such option yet, so it names them with `rename`. Both sides are timed with both of Polars'
+engines: Nanuq's `collect(Engine.InMemory)` and `collect(Engine.Streaming)` are Python's
+`collect(engine="in-memory")` and `collect(engine="streaming")`.
 """
 
 # --- A full run: only with -d:bench -------------------------------------------------
@@ -75,27 +76,30 @@ when defined(bench):
     echo "[bench] generating ", benchRows, " rows in ", measurements
     generate(stations, measurements, benchRows)
   echo "[bench] timing Nanuq"
-  let nimTimes = timeIt(benchRuns, proc () = discard onebrc(measurements).collect)
+  let nimMemory = timeIt(benchRuns, proc () = discard onebrc(measurements).collect(Engine.InMemory))
+  let nimStreaming = timeIt(benchRuns, proc () = discard onebrc(measurements).collect(Engine.Streaming))
   echo "[bench] timing Python Polars"
   let pyMemory = timePython(benchRuns, "onebrc(" & escapeJson(measurements) & ").collect(engine='in-memory')")
   let pyStreaming = timePython(benchRuns, "onebrc(" & escapeJson(measurements) & ").collect(engine='streaming')")
   discard saveResult("1brc", %*{"rows": benchRows, "runs": benchRuns},
-    %*{"nanuq": nimTimes, "python in-memory": pyMemory, "python streaming": pyStreaming})
+    %*{"nanuq in-memory": nimMemory, "nanuq streaming": nimStreaming,
+       "python in-memory": pyMemory, "python streaming": pyStreaming})
 
 # --- Results ----------------------------------------------------------------------
 nbText: """
 ## Results
 
 Each row is one run of the full benchmark on someone's machine; the times are the best of
-the timed runs, in seconds, reading the file included.
+the timed runs, in seconds, reading the file included. Older runs timed Nanuq with one
+engine only, its default.
 """
 
 proc resultsTable(): string =
   let results = loadResults("1brc")
   if results.len == 0:
     return "No results yet."
-  result = "| Date | Machine | Rows | Nanuq | Python in-memory | Python streaming | Versions |\n" &
-           "| ---- | ------- | ---: | ----: | ---------------: | ---------------: | -------- |\n"
+  result = "| Date | Machine | Rows | Nanuq in-memory | Nanuq streaming | Python in-memory | Python streaming | Versions |\n" &
+           "| ---- | ------- | ---: | --------------: | --------------: | ---------------: | ---------------: | -------- |\n"
   for r in results:
     let t = r["timings"]
     let v = r["versions"]
@@ -103,7 +107,9 @@ proc resultsTable(): string =
     if r["label"].getStr.len > 0: who.add " (" & r["label"].getStr & ")"
     result.add "| " & who & " | " & machine(r) & " | " &
       insertSep($r["params"]["rows"].getInt, ',') & " | " &
-      seconds(best(t["nanuq"])) & " | " & seconds(best(t["python in-memory"])) & " | " &
+      seconds(best(nanuqTimes(r, "in-memory"))) & " | " &
+      seconds(best(nanuqTimes(r, "streaming"))) & " | " &
+      seconds(best(t["python in-memory"])) & " | " &
       seconds(best(t["python streaming"])) & " | Nanuq " & v["nanuqWrapper"].getStr &
       ", Polars " & v["pythonPolars"].getStr & ", Nim " & v["nim"].getStr & " |\n"
 

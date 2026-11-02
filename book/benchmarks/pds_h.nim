@@ -87,22 +87,25 @@ when defined(bench):
   let dir = tpchData(benchScale)
   let tables = scanTables(dir)
   loadPython(dir)
-  var nimTimes, pyMemory, pyStreaming = newJObject()
+  var nimMemory, nimStreaming, pyMemory, pyStreaming = newJObject()
   for (n, run) in queries(scale):
     let q = "q" & $n
     echo "[bench] ", q
-    nimTimes[q] = %timeIt(benchRuns, proc () = discard run(tables).collect)
+    nimMemory[q] = %timeIt(benchRuns, proc () = discard run(tables).collect(Engine.InMemory))
+    nimStreaming[q] = %timeIt(benchRuns, proc () = discard run(tables).collect(Engine.Streaming))
     pyMemory[q] = %timePython(benchRuns, pyCall(n, scale))
     pyStreaming[q] = %timePython(benchRuns, pyCall(n, scale, "streaming"))
   discard saveResult("pdsh", %*{"scaleFactor": scale, "runs": benchRuns},
-    %*{"nanuq": nimTimes, "python in-memory": pyMemory, "python streaming": pyStreaming})
+    %*{"nanuq in-memory": nimMemory, "nanuq streaming": nimStreaming,
+       "python in-memory": pyMemory, "python streaming": pyStreaming})
 
 # --- Results ----------------------------------------------------------------------
 nbText: """
 ## Results
 
 One table per run of the full benchmark on someone's machine: for each query, the best
-of the timed runs, in seconds, reading the CSV files included.
+of the timed runs, in seconds, reading the CSV files included. Each side runs with both
+of Polars' engines. Older runs timed Nanuq with one engine only, its default.
 """
 
 proc resultsTables(): string =
@@ -117,13 +120,15 @@ proc resultsTables(): string =
     result.add "### " & title & ", scale factor " & $r["params"]["scaleFactor"].getFloat & "\n\n" &
       machine(r) & ". Nanuq " & v["nanuqWrapper"].getStr & ", Polars " &
       v["pythonPolars"].getStr & ", Nim " & v["nim"].getStr & ".\n\n" &
-      "| Query | Nanuq | Python in-memory | Python streaming |\n" &
-      "| ----- | ----: | ---------------: | ---------------: |\n"
-    var totals: array[3, float]
-    for q, _ in t["nanuq"]:
-      let row = [best(t["nanuq"][q]), best(t["python in-memory"][q]),
+      "| Query | Nanuq in-memory | Nanuq streaming | Python in-memory | Python streaming |\n" &
+      "| ----- | --------------: | --------------: | ---------------: | ---------------: |\n"
+    let nimMemory = nanuqTimes(r, "in-memory")
+    let nimStreaming = nanuqTimes(r, "streaming")
+    var totals: array[4, float]
+    for q, _ in t["python in-memory"]:
+      let row = [best(nimMemory{q}), best(nimStreaming{q}), best(t["python in-memory"][q]),
                  best(t["python streaming"][q])]
-      for i in 0 .. 2: totals[i] += row[i]
+      for i in 0 .. 3: totals[i] += row[i]
       result.add "| " & q & " | " & row.mapIt(seconds(it)).join(" | ") & " |\n"
     result.add "| **total** | " & totals.mapIt("**" & seconds(it) & "**").join(" | ") & " |\n\n"
 

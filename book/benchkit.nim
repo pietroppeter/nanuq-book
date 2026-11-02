@@ -101,10 +101,22 @@ proc loadResults*(bench: string): seq[JsonNode] =
     result.add parseFile(f)
   result.sort(proc (a, b: JsonNode): int = cmp(a["timestamp"].getStr, b["timestamp"].getStr))
 
-proc best*(times: JsonNode): float =
-  times.getElems.mapIt(it.getFloat).min
+proc nanuqTimes*(r: JsonNode, engine: string): JsonNode =
+  ## The Nanuq timings of a result with this engine ("in-memory" or "streaming"), or nil.
+  ## Older results have one "nanuq" entry, timed with plain `collect`: the in-memory
+  ## engine before Nanuq 0.6, the streaming engine from 0.6 (Polars 2's default).
+  let t = r["timings"]
+  if t.hasKey("nanuq " & engine): return t["nanuq " & engine]
+  if t.hasKey("nanuq"):
+    let minor = r["versions"]["nanuqWrapper"].getStr.split('.')[1].parseInt
+    if (minor >= 6) == (engine == "streaming"): return t["nanuq"]
 
-proc seconds*(x: float): string = formatFloat(x, ffDecimal, 2) & " s"
+proc best*(times: JsonNode): float =
+  ## The fastest run, NaN if there are no timings.
+  if times.isNil: NaN else: times.getElems.mapIt(it.getFloat).min
+
+proc seconds*(x: float): string =
+  if x.isNaN: "-" else: formatFloat(x, ffDecimal, 2) & " s"
 
 proc machine*(r: JsonNode): string =
   ## One line about the machine of a result.

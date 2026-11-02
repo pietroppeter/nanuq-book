@@ -2,12 +2,13 @@
 ##
 ## A benchmark chapter builds in two ways:
 ## - normally (`nimble genbook`, CI): it runs its queries on a small sample, to check
-##   that Nim and Python agree, and shows every result file in `results/<bench>/`;
+##   that Nim and Python agree, and shows every result file in `results/<bench>/`,
+##   as a Nanuq query over those files;
 ## - with `-d:bench` (`scripts/bench <bench>`, on your machine): it first runs the
 ##   benchmark at full size, times the Nim and the Python queries, writes a timestamped
 ##   JSON file with the timings and the machine's specs to `results/<bench>/`, and
 ##   commits it.
-import std/[json, os, osproc, strutils, times, monotimes, algorithm, sequtils, math, xmltree]
+import std/[json, os, osproc, strutils, times, monotimes, sequtils, math, xmltree]
 import nanuq
 import nanuqbook
 
@@ -94,37 +95,6 @@ proc saveResult*(bench: string, params, timings: JsonNode): string =
     quoteShell("Benchmark result: " & bench & " " & name) & " -- " & quoteShell(result))
   if code == 0: echo "[bench] committed ", result
   else: echo "[bench] could not commit ", result, ":\n", o
-
-proc loadResults*(bench: string): seq[JsonNode] =
-  ## Every result file of `bench`, oldest first.
-  for f in walkFiles(resultsDir(bench) / "*.json"):
-    result.add parseFile(f)
-  result.sort(proc (a, b: JsonNode): int = cmp(a["timestamp"].getStr, b["timestamp"].getStr))
-
-proc nanuqTimes*(r: JsonNode, engine: string): JsonNode =
-  ## The Nanuq timings of a result with this engine ("in-memory" or "streaming"), or nil.
-  ## Older results have one "nanuq" entry, timed with plain `collect`: the in-memory
-  ## engine before Nanuq 0.6, the streaming engine from 0.6 (Polars 2's default).
-  let t = r["timings"]
-  if t.hasKey("nanuq " & engine): return t["nanuq " & engine]
-  if t.hasKey("nanuq"):
-    let minor = r["versions"]["nanuqWrapper"].getStr.split('.')[1].parseInt
-    if (minor >= 6) == (engine == "streaming"): return t["nanuq"]
-
-proc best*(times: JsonNode): float =
-  ## The fastest run, NaN if there are no timings.
-  if times.isNil: NaN else: times.getElems.mapIt(it.getFloat).min
-
-proc seconds*(x: float): string =
-  if x.isNaN: "-" else: formatFloat(x, ffDecimal, 2) & " s"
-
-proc machine*(r: JsonNode): string =
-  ## One line about the machine of a result.
-  let s = r["system"]
-  result = s["cpu"].getStr
-  if result.len == 0: result = s["arch"].getStr
-  result.add ", " & $s["cores"].getInt & " cores, " & $s["memoryGB"].getFloat & " GB, " &
-    s["os"].getStr
 
 proc queryTabs*(nimSrc, pySrc: string, nimFrame: DataFrame, pyCall: string): string =
   ## A query's Nim and Python source in tabs, each with the table it gives (the Python

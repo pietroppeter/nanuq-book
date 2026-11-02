@@ -1,5 +1,5 @@
 import nanuq, nanuqbook, benchkit, onebrc
-import std/[os, json, strutils]
+import std/[algorithm, os, json, sequtils, strutils]
 bookInit()
 
 const benchRows {.intdefine.} = 1_000_000_000  ## rows of a full run (`-d:benchRows=...`)
@@ -16,57 +16,8 @@ come from its generator, `CreateMeasurements.java`; the text and the code here a
 book's own.
 """
 
-nbText: """
-The challenge, from January 2024: a text file has one billion lines, each with a weather
-station and a temperature, separated by a semicolon:
-
-```text
-Hamburg;12.0
-Bulawayo;8.9
-Palembang;38.8
-Hamburg;34.2
-```
-
-Compute the minimum, mean and maximum temperature of each station, sorted by station, as
-fast as possible. The challenge was for Java, but the answer in Polars is a single lazy
-query, and it is one of the best-known Polars examples. Nanuq runs the same engine, so the
-timings below show how close it gets to Python Polars.
-
-## The query
-
-Here are the two queries, Nim and Python, as they are in the book's repository:
-"""
-
-nbRawHtml: fileTabs("../bench/onebrc.nim", "../bench/onebrc.py")
-
-nbText: """
-The data is made by `generate`, which follows the challenge's generator: each line is a
-random station, and a temperature drawn from a normal distribution around the station's
-mean, with a standard deviation of 10 degrees and one decimal.
-
-## A small run
-
-When the book is built, the query runs on a sample of 10,000 rows, on both sides:
-"""
-
 let stations = ".." / "data" / "1brc" / "weather_stations.csv"
-createDir "data/1brc"
-generate(stations, "data/1brc/sample.txt", 10_000)
 discard runPython("import sys\nsys.path.insert(0, '../bench')\nfrom onebrc import onebrc")
-
-tabs """
-onebrc("data/1brc/sample.txt").collect().head(10)
-""":
-  nbCode:
-    let sample = onebrc("data/1brc/sample.txt").collect.head(10)
-    nbShow sample
-
-nanuq """
-Python reads the file with a schema, which names the columns too; Nanuq's `scanCsv` has no
-such option yet, so it names them with `rename`. Both sides are timed with both of Polars'
-engines: Nanuq's `collect(Engine.InMemory)` and `collect(Engine.Streaming)` are Python's
-`collect(engine="in-memory")` and `collect(engine="streaming")`.
-"""
 
 # --- A full run: only with -d:bench -------------------------------------------------
 when defined(bench):
@@ -91,31 +42,118 @@ when defined(bench):
 nbText: """
 ## Results
 
-Each row is one run of the full benchmark on someone's machine; the times are the best of
-the timed runs, in seconds, reading the file included. Older runs timed Nanuq with one
-engine only, its default.
+Each run of the full benchmark leaves a JSON file in
+[`results/1brc/`](https://github.com/pietroppeter/nanuq-book/tree/main/results/1brc), with
+the machine, the versions and three timings per engine. The table below is a Polars query
+over those files, so it is built like everything else in this book. The JSON nests the
+timings in a struct, so `unnest` makes each engine a column; runs that skipped an engine
+have no such column, so a diagonal `concat` fills it with nulls.
 """
 
-proc resultsTable(): string =
-  let results = loadResults("1brc")
-  if results.len == 0:
-    return "No results yet."
-  result = "| Date | Machine | Rows | Nanuq in-memory | Nanuq streaming | Python in-memory | Python streaming | Versions |\n" &
-           "| ---- | ------- | ---: | --------------: | --------------: | ---------------: | ---------------: | -------- |\n"
-  for r in results:
-    let t = r["timings"]
-    let v = r["versions"]
-    var who = r["timestamp"].getStr[0 .. 9]
-    if r["label"].getStr.len > 0: who.add " (" & r["label"].getStr & ")"
-    result.add "| " & who & " | " & machine(r) & " | " &
-      insertSep($r["params"]["rows"].getInt, ',') & " | " &
-      seconds(best(nanuqTimes(r, "in-memory"))) & " | " &
-      seconds(best(nanuqTimes(r, "streaming"))) & " | " &
-      seconds(best(t{"python in-memory"})) & " | " &
-      seconds(best(t["python streaming"])) & " | Nanuq " & v["nanuqWrapper"].getStr &
-      ", Polars " & v["pythonPolars"].getStr & ", Nim " & v["nim"].getStr & " |\n"
+tabs """
+import glob
+import polars as pl
 
-nbText: resultsTable()
+runs = pl.concat(
+    [pl.read_json(path).unnest("timings") for path in sorted(glob.glob("../results/1brc/*.json"))],
+    how="diagonal",
+)
+""":
+  nbCode:
+    let runs = concat(
+      sorted(toSeq(walkFiles("../results/1brc/*.json"))).mapIt(readJson(it).unnest("timings")),
+      how = ConcatMethod.Diagonal)
+
+nbText: """
+Each timing is a list of runs, and the best one counts: `list.min` takes it, for all four
+columns at once. Struct fields become columns of their own, and the last column is the
+gain from streaming, in Nanuq.
+"""
+
+tabs """
+engines = ["nanuq in-memory", "nanuq streaming", "python in-memory", "python streaming"]
+
+runs.select(
+    pl.col("timestamp").str.slice(0, 10).alias("date"),
+    pl.col("label").alias("machine"),
+    pl.col("system").struct.field("cpu"),
+    pl.col("params").struct.field("rows"),
+    pl.col("versions").struct.field("nanuqWrapper").alias("nanuq"),
+    pl.col(engines).list.min().round(2),
+).with_columns(
+    (pl.col("nanuq in-memory") / pl.col("nanuq streaming")).round(1).alias("streaming gain")
+)
+""":
+  nbCode:
+    let engines = ["nanuq in-memory", "nanuq streaming", "python in-memory", "python streaming"]
+
+    let table = runs.select(
+      col.timestamp.str.slice(0, 10).alias("date"),
+      col.label.alias("machine"),
+      col.system.struct.field("cpu"),
+      col.params.struct.field("rows"),
+      col.versions.struct.field("nanuqWrapper").alias("nanuq"),
+      col(engines).list.min.round(2)
+    ).withColumns(
+      (col("nanuq in-memory") / col("nanuq streaming")).round(1).alias("streaming gain"))
+    nbShow table
+
+nanuq """
+Timings are in seconds, reading the file included. A null means the run did not use that
+engine: older runs timed Nanuq with one engine only, and the in-memory engine needs too
+much memory for one billion rows on a laptop.
+"""
+
+nbText: """
+## The challenge
+
+The challenge, from January 2024: a text file has one billion lines, each with a weather
+station and a temperature, separated by a semicolon:
+
+```text
+Hamburg;12.0
+Bulawayo;8.9
+Palembang;38.8
+Hamburg;34.2
+```
+
+Compute the minimum, mean and maximum temperature of each station, sorted by station, as
+fast as possible. The challenge was for Java, but the answer in Polars is a single lazy
+query, and it is one of the best-known Polars examples. Nanuq runs the same engine, so the
+timings above show how close it gets to Python Polars.
+
+## The query
+
+Here are the two queries, Nim and Python, as they are in the book's repository:
+"""
+
+nbRawHtml: fileTabs("../bench/onebrc.nim", "../bench/onebrc.py")
+
+nbText: """
+The data is made by `generate`, which follows the challenge's generator: each line is a
+random station, and a temperature drawn from a normal distribution around the station's
+mean, with a standard deviation of 10 degrees and one decimal.
+
+## A small run
+
+When the book is built, the query runs on a sample of 10,000 rows, on both sides:
+"""
+
+createDir "data/1brc"
+generate(stations, "data/1brc/sample.txt", 10_000)
+tabs """
+onebrc("data/1brc/sample.txt").collect().head(10)
+""":
+  nbCode:
+    let sample = onebrc("data/1brc/sample.txt").collect.head(10)
+    nbShow sample
+
+nanuq """
+Python reads the file with a schema, which names the columns too; Nanuq's `scanCsv` has no
+such option yet, so it names them with `rename`. Both sides are timed with both of Polars'
+engines: Nanuq's `collect(Engine.InMemory)` and `collect(Engine.Streaming)` are Python's
+`collect(engine="in-memory")` and `collect(engine="streaming")`.
+"""
 
 nbText: """
 ## Running it on your machine
@@ -136,7 +174,7 @@ about 1.4 GB for 100 million rows, measured on Python. On a machine with less th
 100 GB of memory, run one billion rows with the streaming engine only.
 
 It writes the timings and the machine's specs to a timestamped file in `results/1brc/` and
-commits it; a pull request with that file adds a row to the table above.
+commits it; a pull request with that file adds a row to the table at the top.
 """
 
 bookSave()

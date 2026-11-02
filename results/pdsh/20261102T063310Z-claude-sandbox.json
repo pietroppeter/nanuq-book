@@ -20,7 +20,7 @@
     "pythonPolars": "2.1.0"
   },
   "timings": {
-    "nanuq": {
+    "nanuq streaming": {
       "q1": [
         1.686124348,
         1.814703842,

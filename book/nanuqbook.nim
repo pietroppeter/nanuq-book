@@ -70,6 +70,17 @@ proc polarsCookbook*(chapter: int, title, changes: string): Source =
          license: "MIT", licenseUrl: "https://github.com/PacktPublishing/Polars-Cookbook/blob/main/LICENSE",
          changes: changes, codeOnly: true)
 
+proc modernPolars*(title, page, changes: string): Source =
+  ## A chapter of *Modern Polars* by Kevin Heavey (CC BY 4.0), a side-by-side
+  ## comparison of Polars and pandas. The ports keep the Polars side.
+  Source(title: "“" & title & "” in *Modern Polars*",
+         url: "https://kevinheavey.github.io/modern-polars/" & page & ".html",
+         authors: "Kevin Heavey",
+         license: "CC BY 4.0", licenseUrl: "https://github.com/kevinheavey/modern-polars/blob/master/LICENSE.md",
+         changes: "*Modern Polars* compares Polars with pandas; the port keeps the Polars " &
+           "code (now in a Python tab next to its Nim port), leaves the pandas code out and " &
+           "trims sentences that only compare the two. " & changes)
+
 # ---------------------------------------------------------------------------
 # Python, run for real
 # ---------------------------------------------------------------------------

@@ -69,6 +69,8 @@ var book = initBookWithToc:
     entry("Handling missing values", "missing_values")
     entry("String manipulations", "string_manipulations")
     entry("Debugging chained operations", "debugging_chains")
+  section("Modern Polars", "modern-polars/index.md"):
+    entry("Timeseries", "timeseries")
   section("Benchmarks", "benchmarks/index.md"):
     entry("One Billion Row Challenge", "one_billion_rows")
     entry("PDS-H queries", "pds_h")

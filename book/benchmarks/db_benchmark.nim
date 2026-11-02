@@ -88,7 +88,7 @@ nbText: """
 Each run of the full benchmark leaves a JSON file in
 [`results/dbbench/`](https://github.com/pietroppeter/nanuq-book/tree/main/results/dbbench),
 with the machine, the versions and, for each engine and question, three timings. The tables
-below are a Polars query over those files, as in the other benchmark chapters: two rounds
+below are a Polars query over those files (`run` is when it started, in UTC), as in the other benchmark chapters: two rounds
 of `unnest` and `unpivot` give one row per engine and question, and `list.min` keeps the
 best of the timed runs.
 """
@@ -97,14 +97,14 @@ tabs """
 import glob
 import polars as pl
 
-index = ["date", "machine", "cpu", "nanuq", "rows"]
+index = ["run", "machine", "cpu", "nanuq", "rows"]
 
 
 def timings(path):
     return (
         pl.read_json(path)
         .select(
-            pl.col("timestamp").str.slice(0, 10).alias("date"),
+            pl.col("timestamp").str.slice(0, 16).alias("run"),
             pl.col("label").alias("machine"),
             pl.col("system").struct.field("cpu"),
             pl.col("versions").struct.field("nanuqWrapper").alias("nanuq"),
@@ -124,12 +124,12 @@ times = pl.concat(
 times.head(3)
 """:
   nbCode:
-    let index = @["date", "machine", "cpu", "nanuq", "rows"]
+    let index = @["run", "machine", "cpu", "nanuq", "rows"]
 
     proc timings(path: string): DataFrame =
       readJson(path)
         .select(
-          col.timestamp.str.slice(0, 10).alias("date"),
+          col.timestamp.str.slice(0, 16).alias("run"),
           col.label.alias("machine"),
           col.system.struct.field("cpu"),
           col.versions.struct.field("nanuqWrapper").alias("nanuq"),
@@ -170,16 +170,14 @@ tabs """
 pl.Config.set_tbl_rows(15)  # the default shows 10 rows
 
 (
-    times.filter(pl.col("date") == pl.col("date").max())
-    .filter(pl.col("machine") == pl.col("machine").first())
+    times.filter(pl.col("run") == pl.col("run").max())
     .with_columns(pl.col("seconds").round(3))
     .pivot(on="engine", index="question", values="seconds", sort_columns=True)
 )
 """:
   nbCode:
     let byQuestion = times
-      .filter(col.date == col.date.max)
-      .filter(col.machine == col.machine.first)
+      .filter(col.run == col.run.max)
       .withColumns(col.seconds.round(3))
       .pivot(on = "engine", index = "question", values = "seconds", sortColumns = true)
   nbRawHtml: byQuestion.toHtml(maxRows = 15)  # the default shows 10 rows

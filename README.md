@@ -78,6 +78,7 @@ side by side. A full run happens only on your machine:
 scripts/bench 1brc                                              # one billion rows
 scripts/bench 1brc -d:benchRows=100000000 -d:benchLabel=my-mac  # fewer rows, named machine
 scripts/bench pdsh -d:benchScale=10                             # PDS-H at scale factor 10
+scripts/bench dbbench -d:benchRows=1000000                      # db-benchmark, 1M rows (default 10M)
 ```
 
 It builds the chapter with `-d:bench`, which generates the data in `bench-data/` (ignored

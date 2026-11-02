@@ -1,8 +1,10 @@
-// The Nanuq book's script: Nim/Python tabs and the light/dark switch. `nimble genbook`
+// The Nanuq book's script: Nim/Python (and Rust) tabs and the light/dark switch. `nimble genbook`
 // appends it to nimibook's assets/js/book.js, so it runs on every page.
 (function () {
   function choose(lang) {
     document.querySelectorAll(".nq-tabs").forEach(function (t) {
+      // a choice of Rust leaves the Nim/Python-only tabs as they are
+      if (!t.querySelector('.nq-tab[data-lang="' + lang + '"]')) return;
       t.querySelectorAll(".nq-tab").forEach(function (b) {
         b.setAttribute("aria-selected", b.dataset.lang === lang ? "true" : "false"); });
       t.querySelectorAll(".nq-panel").forEach(function (p) { p.hidden = p.dataset.lang !== lang; });
@@ -43,7 +45,7 @@
     try { lang = localStorage.getItem("nanuq-book-lang"); } catch (e) {}
     if (lang) choose(lang);
     // Nim is highlighted when the page is built; highlight.js only does the Python cells
-    var py = document.querySelectorAll("code.language-python");
+    var py = document.querySelectorAll("code.language-python, code.language-rust");
     if (py.length) {
       var s = document.createElement("script");
       s.src = "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js";

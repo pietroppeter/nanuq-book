@@ -111,7 +111,7 @@ props_groups2 = props_groups.with_columns(
 props_groups2
 """:
   nbCode:
-    let propsGroups2 = propsGroups.withColumns(col("property_name").str.toLowercase)
+    let propsGroups2 = propsGroups.withColumns(col.property_name.str.toLowercase)
     nbShow propsGroups2
 
 tabs """
@@ -121,7 +121,7 @@ props_prices2 = props_prices.select(
 props_prices2
 """:
   nbCode:
-    let propsPrices2 = propsPrices.select(col("property_name").alias("name"), col("cost"))
+    let propsPrices2 = propsPrices.select(col.property_name.alias("name"), col.cost)
     nbShow propsPrices2
 
 nbText: """
@@ -143,7 +143,7 @@ props_groups2.join(
 """:
   nbCode:
     let byName = propsGroups2.join(propsPrices2,
-      leftOn = [col("property_name")], rightOn = [col("name").str.toLowercase])
+      leftOn = [col.property_name], rightOn = [col.name.str.toLowercase])
     nbShow byName
 
 nbText: """
@@ -232,7 +232,7 @@ print(
 """:
   nbCode:
     let swapped = propsPrices.join(propsGroups, on = ["property_name"], how = Left)
-      .select(col("group"), col("property_name"), col("cost"))
+      .select(col.group, col.property_name, col.cost)
     echo $rightJoin == $swapped
 
 nbText: """
@@ -356,10 +356,10 @@ df_trades
     proc at(hour, minute: int): DateTime =
       dateTime(2020, mJan, 1, hour, minute, 0, zone = utc())
 
-    let dfTrades = newDataFrame(
-      series("time", [at(9, 1), at(9, 1), at(9, 3), at(9, 6)]),
-      series("stock", ["A", "B", "B", "C"]),
-      series("trade", [101, 299, 301, 500]))
+    let dfTrades = newDataFrame:
+      time: [at(9, 1), at(9, 1), at(9, 3), at(9, 6)]
+      stock: ["A", "B", "B", "C"]
+      trade: [101, 299, 301, 500]
     nbShow dfTrades
 
 nbText: """
@@ -383,10 +383,10 @@ df_quotes = pl.DataFrame(
 df_quotes
 """:
   nbCode:
-    let dfQuotes = newDataFrame(
-      series("time", [at(9, 0), at(9, 2), at(9, 4), at(9, 6)]),
-      series("stock", ["A", "B", "C", "A"]),
-      series("quote", [100, 300, 501, 102]))
+    let dfQuotes = newDataFrame:
+      time: [at(9, 0), at(9, 2), at(9, 4), at(9, 6)]
+      stock: ["A", "B", "C", "A"]
+      quote: [100, 300, 501, 102]
     nbShow dfQuotes
 
 nbText: """
@@ -446,9 +446,12 @@ tokens = pl.DataFrame({"monopoly_token": ["hat", "shoe", "boat"]})
 players.select(pl.col("name")).join(tokens, how="cross")
 """:
   nbCode:
-    let players = newDataFrame(series("name", ["Alice", "Bob"]), series("cash", [78, 135]))
-    let tokens = newDataFrame(series("monopoly_token", ["hat", "shoe", "boat"]))
-    let crossJoin = players.select(col("name")).join(tokens, how = Cross)
+    let players = newDataFrame:
+      name: ["Alice", "Bob"]
+      cash: [78, 135]
+    let tokens = newDataFrame:
+      monopoly_token: ["hat", "shoe", "boat"]
+    let crossJoin = players.select(col.name).join(tokens, how = Cross)
     nbShow crossJoin
 
 

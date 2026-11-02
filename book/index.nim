@@ -32,11 +32,11 @@ greetings.filter(pl.col("speakers_millions") > 100)
   nbCode:
     import nanuq
 
-    let greetings = newDataFrame(
-      series("language", ["English", "Italian", "French"]),
-      series("hello", ["Hello, world!", "Ciao, mondo!", "Bonjour, le monde !"]),
-      series("speakers_millions", [1500, 68, 310]))
-    nbShow greetings.filter(col("speakers_millions") > 100)
+    let greetings = newDataFrame:
+      language: ["English", "Italian", "French"]
+      hello: ["Hello, world!", "Ciao, mondo!", "Bonjour, le monde !"]
+      speakers_millions: [1500, 68, 310]
+    nbShow greetings.filter(col.speakers_millions > 100)
 
 nbText: """
 ## Sources and licences

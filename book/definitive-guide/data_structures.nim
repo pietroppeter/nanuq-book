@@ -87,9 +87,9 @@ coordinates = pl.DataFrame(
 coordinates
 """:
   nbCode:
-    let coordinates = newDataFrame(
-      series("point_2d", [[1, 3], [2, 5]]),
-      series("point_3d", [[1, 7, 3], [8, 1, 0]]))
+    let coordinates = newDataFrame:
+      point_2d: [[1, 3], [2, 5]]
+      point_3d: [[1, 7, 3], [8, 1, 0]]
 
     nbShow coordinates
 

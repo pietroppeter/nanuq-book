@@ -79,7 +79,7 @@ df
     nbShow df
 
 nanuq """
-The column is called `Date`, the name of a Nim type, so the shorthand `col.Date` would be
+The column is called `Date`, the name of a Nim type, so the shorthand `col("Date")` would be
 read as a conversion to `Date`: write `col("Date")`.
 """
 

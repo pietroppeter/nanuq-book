@@ -75,7 +75,7 @@ out
     proc myLog(value: int): float =
       ln(value.float)
 
-    nbShow df.select(col("values").mapElements(myLog))
+    nbShow df.select(col.values.mapElements(myLog))
 
 nanuq """
 No `return_dtype`: the result type of the Nim proc, `float`, says it is `Float64`.
@@ -136,7 +136,7 @@ out
       series("", values.mapIt(it.float - mean))
 
     # Apply our custom function to a full Series with mapBatches:
-    nbShow df.select(col("values").mapBatches(diffFromMean, Float64))
+    nbShow df.select(col.values.mapBatches(diffFromMean, Float64))
 
 tabs """
 # Apply our custom function per group:
@@ -148,7 +148,7 @@ out
   nbCode:
     # Apply our custom function per group:
     nbShow df.groupBy("keys").agg(
-      col("values").mapBatches(diffFromMean, Float64))
+      col.values.mapBatches(diffFromMean, Float64))
 
 nbText: """
 ## Fast operations with user-defined functions

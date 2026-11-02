@@ -46,14 +46,14 @@ df
     import nanuq
 
     # As of 14th October 2024, ~3pm UTC
-    let df = newDataFrame(
-      series("ticker", ["AAPL", "NVDA", "MSFT", "GOOG", "AMZN"]),
-      series("company_name", ["Apple", "NVIDIA", "Microsoft", "Alphabet (Google)", "Amazon"]),
-      series("price", [229.9, 138.93, 420.56, 166.41, 188.4]),
-      series("day_high", [231.31, 139.6, 424.04, 167.62, 189.83]),
-      series("day_low", [228.6, 136.3, 417.52, 164.78, 188.44]),
-      series("year_high", [237.23, 140.76, 468.35, 193.31, 201.2]),
-      series("year_low", [164.08, 39.23, 324.39, 121.46, 118.35]))
+    let df = newDataFrame:
+      ticker: ["AAPL", "NVDA", "MSFT", "GOOG", "AMZN"]
+      company_name: ["Apple", "NVIDIA", "Microsoft", "Alphabet (Google)", "Amazon"]
+      price: [229.9, 138.93, 420.56, 166.41, 188.4]
+      day_high: [231.31, 139.6, 424.04, 167.62, 189.83]
+      day_low: [228.6, 136.3, 417.52, 164.78, 188.44]
+      year_high: [237.23, 140.76, 468.35, 193.31, 201.2]
+      year_low: [164.08, 39.23, 324.39, 121.46, 118.35]
     nbShow df
 
 nbText: """
@@ -116,11 +116,11 @@ print(result.equals(result2))
 """:
   nbCode:
     let exprs = [
-      (col("price") / eurUsdRate).round(2),
-      (col("day_high") / eurUsdRate).round(2),
-      (col("day_low") / eurUsdRate).round(2),
-      (col("year_high") / eurUsdRate).round(2),
-      (col("year_low") / eurUsdRate).round(2),
+      (col.price / eurUsdRate).round(2),
+      (col.day_high / eurUsdRate).round(2),
+      (col.day_low / eurUsdRate).round(2),
+      (col.year_high / eurUsdRate).round(2),
+      (col.year_low / eurUsdRate).round(2),
     ]
 
     let result2 = df.withColumns(exprs)
@@ -293,8 +293,8 @@ except DuplicateError as err:
 
     try:
       discard df.select(
-        col("price") / gbpUsdRate,  # This would be named "price"...
-        col("price") / eurUsdRate,  # And so would this.
+        col.price / gbpUsdRate,  # This would be named "price"...
+        col.price / eurUsdRate,  # And so would this.
       )
     except DuplicateError as err:
       echo "DuplicateError: ", err.msg.splitLines[0]
@@ -323,8 +323,8 @@ df.select(
 """:
   nbCode:
     let prices = df.select(
-      (col("price") / gbpUsdRate).alias("price (GBP)"),
-      (col("price") / eurUsdRate).alias("price (EUR)"))
+      (col.price / gbpUsdRate).alias("price (GBP)"),
+      (col.price / eurUsdRate).alias("price (EUR)"))
     nbShow prices
 
 nbText: """

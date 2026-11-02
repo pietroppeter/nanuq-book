@@ -185,9 +185,11 @@ different_floats = pl.DataFrame({"a": [1.001, 2.0, 3.0, 4.0]})
   nbCode:
     import nanuq/testing
 
-    let floats = newDataFrame(series("a", [1.0, 2.0, 3.0, 4.0]))
+    let floats = newDataFrame:
+      a: [1.0, 2.0, 3.0, 4.0]
 
-    let differentFloats = newDataFrame(series("a", [1.001, 2.0, 3.0, 4.0]))
+    let differentFloats = newDataFrame:
+      a: [1.001, 2.0, 3.0, 4.0]
 
 nbText: """
 By default floats must be equal up to a tiny relative difference, so these two frames

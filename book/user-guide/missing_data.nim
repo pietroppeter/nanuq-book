@@ -41,7 +41,8 @@ df
   nbCode:
     import nanuq
 
-    let df = newDataFrame(series("value", [some(1), none(int)]))
+    let df = newDataFrame:
+      value: [1, nil]
     nbShow df
 
 nbText: """
@@ -69,7 +70,7 @@ tabs """
 df.null_count()
 """:
   nbCode:
-    let nullCountDf = df.select(col("value").isNull.sum)
+    let nullCountDf = df.select(col.value.isNull.sum)
     nbShow nullCountDf
 
 nbText: """
@@ -93,7 +94,7 @@ df.select(
 )
 """:
   nbCode:
-    let isNullSeries = df.select(col("value").isNull)
+    let isNullSeries = df.select(col.value.isNull)
     nbShow isNullSeries
 
 nbText: """
@@ -131,9 +132,9 @@ df = pl.DataFrame(
 df
 """:
   nbCode:
-    let df2 = newDataFrame(
-      series("col1", [0.5, 1, 1.5, 2, 2.5]),
-      series("col2", [some(1), none(int), some(3), none(int), some(5)]))
+    let df2 = newDataFrame:
+      col1: [0.5, 1, 1.5, 2, 2.5]
+      col2: [1, nil, 3, nil, 5]
     nbShow df2
 
 nbText: """
@@ -149,7 +150,7 @@ df.with_columns(
 )
 """:
   nbCode:
-    let fillLiteralDf = df2.withColumns(col("col2").fillNull(3))
+    let fillLiteralDf = df2.withColumns(col.col2.fillNull(3))
     nbShow fillLiteralDf
 
 nbText: """
@@ -171,7 +172,7 @@ df.with_columns(
 """:
   nbCode:
     let fillExpressionDf = df2.withColumns(
-      col("col2").fillNull((2 * col("col1")).cast(Int64)))
+      col.col2.fillNull((2 * col.col1).cast(Int64)))
     nbShow fillExpressionDf
 
 nbText: """
@@ -194,8 +195,8 @@ df.with_columns(
 """:
   nbCode:
     let fillForwardDf = df2.withColumns(
-      col("col2").fillNull(Forward).alias("forward"),
-      col("col2").fillNull(Backward).alias("backward"))
+      col.col2.fillNull(Forward).alias("forward"),
+      col.col2.fillNull(Backward).alias("backward"))
     nbShow fillForwardDf
 
 nbText: """
@@ -219,7 +220,7 @@ df.with_columns(
 )
 """:
   nbCode:
-    let fillInterpolationDf = df2.withColumns(col("col2").interpolate)
+    let fillInterpolationDf = df2.withColumns(col.col2.interpolate)
     nbShow fillInterpolationDf
 
 nbText: """
@@ -247,7 +248,8 @@ nan_df = pl.DataFrame(
 nan_df
 """:
   nbCode:
-    let nanDf = newDataFrame(series("value", [1.0, NaN, NaN, 3.0]))
+    let nanDf = newDataFrame:
+      value: [1.0, NaN, NaN, 3.0]
     nbShow nanDf
 
 nbText: """
@@ -271,8 +273,10 @@ df = pl.DataFrame(
 df.select(pl.col("dividend") / pl.col("divisor"))
 """:
   nbCode:
-    let df3 = newDataFrame(series("dividend", [1, 0, -1]), series("divisor", [1, 0, -1]))
-    let divided = df3.select(col("dividend") / col("divisor"))
+    let df3 = newDataFrame:
+      dividend: [1, 0, -1]
+      divisor: [1, 0, -1]
+    let divided = df3.select(col.dividend / col.divisor)
     nbShow divided
 
 nbText: """
@@ -311,7 +315,7 @@ nan_df.with_columns(
 """:
   nbCode:
     let meanNanDf = nanDf.withColumns(
-      col("value").fillNan(nil).alias("replaced"),
+      col.value.fillNan(nil).alias("replaced"),
     ).select(
       all().mean.name.suffix("_mean"),
       all().sum.name.suffix("_sum"))

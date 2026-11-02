@@ -7,11 +7,11 @@ proc onebrc*(path: string): LazyFrame =
   scanCsv(path, separator = ';', hasHeader = false,
           newColumns = ["station", "measurement"],
           schemaOverrides = {"column_1": Float64})
-    .groupBy(col("station"))
+    .groupBy(col.station)
     .agg(
-      col("measurement").min.alias("min"),
-      col("measurement").mean.round(1).alias("mean"),
-      col("measurement").max.alias("max"))
+      col.measurement.min.alias("min"),
+      col.measurement.mean.round(1).alias("mean"),
+      col.measurement.max.alias("max"))
     .sort("station")
 
 proc readStations*(path: string): seq[(string, float)] =

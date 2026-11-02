@@ -145,7 +145,7 @@ result
     nbShow pokemon.groupBy("Type 1")
       .agg(
         col.Name,
-        col("Speed").rank(Dense, descending = true).alias("Speed rank"))
+        col.Speed.rank(Dense, descending = true).alias("Speed rank"))
       .select(col.Name, col("Type 1"), col("Speed rank"))
       .explode("Name", "Speed rank")
 
@@ -215,8 +215,8 @@ result
 """:
   nbCode:
     let sortedByRank = athletes.select(
-      col(["athlete", "rank"]).sortBy(col("rank")).over(col("country")),
-      col("country"))
+      col(["athlete", "rank"]).sortBy(col.rank).over(col.country),
+      col.country)
     nbShow sortedByRank
 
 nbText: """

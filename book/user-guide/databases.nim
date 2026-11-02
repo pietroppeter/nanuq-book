@@ -53,7 +53,8 @@ df.write_database(table_name="records", connection=uri, engine="adbc",
     import db_connector/db_sqlite
 
     let conn = open("data/polars/records.db", "", "", "")
-    let df = newDataFrame(series("foo", [1, 2, 3]))
+    let df = newDataFrame:
+      foo: [1, 2, 3]
 
     echo df.writeDatabase("records", conn, ifTableExists = IfTableExists.Replace)
 

@@ -34,13 +34,13 @@ df
   nbCode:
     import nanuq
 
-    let df = newDataFrame(
-      series("nrs", [some(1), some(2), some(3), none(int), some(5)]),
-      series("names", ["foo", "ham", "spam", "egg", "spam"]),
+    let df = newDataFrame:
+      nrs: [1, 2, 3, nil, 5]
+      names: ["foo", "ham", "spam", "egg", "spam"]
       # the numbers numpy draws with seed 42
-      series("random", [0.3745401188473625, 0.9507143064099162, 0.7319939418114051,
-                        0.5986584841970366, 0.15601864044243652]),
-      series("groups", ["A", "A", "B", "A", "B"]))
+      random: [0.3745401188473625, 0.9507143064099162, 0.7319939418114051,
+               0.5986584841970366, 0.15601864044243652]
+      groups: ["A", "A", "B", "A", "B"]
     nbShow df
 
 nbText: """
@@ -68,12 +68,12 @@ df.select(
 """:
   nbCode:
     let arithmetic = df.select(
-      (col("nrs") + 5).alias("nrs + 5"),
-      (col("nrs") - 5).alias("nrs - 5"),
-      (col("nrs") * col("random")).alias("nrs * random"),
-      (col("nrs") / col("random")).alias("nrs / random"),
-      (col("nrs") ^ 2).alias("nrs ** 2"),
-      (col("nrs") mod 3).alias("nrs % 3"))
+      (col.nrs + 5).alias("nrs + 5"),
+      (col.nrs - 5).alias("nrs - 5"),
+      (col.nrs * col.random).alias("nrs * random"),
+      (col.nrs / col.random).alias("nrs / random"),
+      (col.nrs ^ 2).alias("nrs ** 2"),
+      (col.nrs mod 3).alias("nrs % 3"))
     nbShow arithmetic
 
 nbText: """
@@ -109,12 +109,12 @@ df.select(
 """:
   nbCode:
     let comparisons = df.select(
-      (col("nrs") > 1).alias("nrs > 1"),
-      (col("nrs") >= 3).alias("nrs >= 3"),
-      (col("random") < 0.2).alias("random < .2"),
-      (col("random") <= 0.5).alias("random <= .5"),
-      (col("nrs") != 1).alias("nrs != 1"),
-      (col("nrs") == 1).alias("nrs == 1"))
+      (col.nrs > 1).alias("nrs > 1"),
+      (col.nrs >= 3).alias("nrs >= 3"),
+      (col.random < 0.2).alias("random < .2"),
+      (col.random <= 0.5).alias("random <= .5"),
+      (col.nrs != 1).alias("nrs != 1"),
+      (col.nrs == 1).alias("nrs == 1"))
     nbShow comparisons
 
 nbText: """
@@ -142,9 +142,9 @@ df.select(
 """:
   nbCode:
     let booleans = df.select(
-      ((not col("nrs").isNull) and (col("groups") == "A")).alias(
+      ((not col.nrs.isNull) and (col.groups == "A")).alias(
         "number not null and group A"),
-      ((col("random") < 0.5) or (col("groups") == "B")).alias(
+      ((col.random < 0.5) or (col.groups == "B")).alias(
         "random < 0.5 or group B"))
     nbShow booleans
 
@@ -185,8 +185,8 @@ long_df.select(
       100_000, withReplacement = true, seed = 42)
 
     let counts = longDf.select(
-      col("numbers").nUnique.alias("n_unique"),
-      col("numbers").approxNUnique.alias("approx_n_unique"))
+      col.numbers.nUnique.alias("n_unique"),
+      col.numbers.approxNUnique.alias("approx_n_unique"))
     nbShow counts
 
 nbText: """
@@ -219,8 +219,8 @@ df.select(
 """:
   nbCode:
     let uniqueCounts = df.select(
-      col("names").unique(maintainOrder = true).alias("unique"),
-      col("names").uniqueCounts.alias("unique_counts"))
+      col.names.unique(maintainOrder = true).alias("unique"),
+      col.names.uniqueCounts.alias("unique_counts"))
     nbShow uniqueCounts
 
 nbText: """
@@ -275,11 +275,11 @@ df.select(
 """:
   nbCode:
     let step = choose:
-      if col("nrs") mod 2 == 1:  # Is the number odd?
-        3 * col("nrs") + 1       # If so, multiply by 3 and add 1.
+      if col.nrs mod 2 == 1:  # Is the number odd?
+        3 * col.nrs + 1       # If so, multiply by 3 and add 1.
       else:
-        col("nrs") div 2         # If not, divide by 2.
-    let collatz = df.select(col("nrs"), step.alias("Collatz"))
+        col.nrs div 2         # If not, divide by 2.
+    let collatz = df.select(col.nrs, step.alias("Collatz"))
     nbShow collatz
 
 nbText: """

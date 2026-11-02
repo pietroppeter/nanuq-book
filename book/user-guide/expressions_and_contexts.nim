@@ -29,7 +29,7 @@ pl.col("weight") / (pl.col("height") ** 2)
   nbCode:
     import nanuq
 
-    discard col("weight") / (col("height") ^ 2)
+    discard col.weight / (col.height ^ 2)
 
 nanuq """
 A Nim expression statement must be used or discarded, hence the `discard`. Python's `**` is
@@ -49,7 +49,7 @@ bmi_expr = pl.col("weight") / (pl.col("height") ** 2)
 print(bmi_expr)
 """:
   nbCode:
-    let bmiExpr = col("weight") / (col("height") ^ 2)
+    let bmiExpr = col.weight / (col.height ^ 2)
     echo bmiExpr
 
 nanuq """
@@ -96,11 +96,12 @@ df = pl.DataFrame(
 df
 """:
   nbCode:
-    let df = newDataFrame(
-      series("name", ["Alice Archer", "Ben Brown", "Chloe Cooper", "Daniel Donovan"]),
-      series("birth_year", [1997, 1985, 1983, 1981]),
-      series("weight", [57.9, 72.5, 53.6, 83.1]),  # (kg)
-      series("height", [1.56, 1.77, 1.65, 1.75]))  # (m)
+    let df = newDataFrame:  # (m)
+      name: ["Alice Archer", "Ben Brown", "Chloe Cooper", "Daniel Donovan"]
+      birth_year: [1997, 1985, 1983, 1981]
+      weight: [57.9, 72.5, 53.6, 83.1]
+      # (kg)
+      height: [1.56, 1.77, 1.65, 1.75]
     nbShow df
 
 nbText: """
@@ -202,7 +203,7 @@ df.filter(
 """:
   nbCode:
     let filtered = df.filter(
-      col("birth_year").isBetween(1983, 1995) and col("height") > 1.7)
+      col.birth_year.isBetween(1983, 1995) and col.height > 1.7)
     nbShow filtered
 
 nbText: """
@@ -272,11 +273,11 @@ df.group_by(
 """:
   nbCode:
     let groups = df.groupBy(
-      (col("birth_year") div 10 * 10).alias("decade"),
-      (col("height") < 1.7).alias("short?"),
+      (col.birth_year div 10 * 10).alias("decade"),
+      (col.height < 1.7).alias("short?"),
     ).agg(
       len(),
-      col("height").max.alias("tallest"),
+      col.height.max.alias("tallest"),
       col("weight", "height").mean.name.prefix("avg_"),
     )
     nbShow groups
@@ -348,9 +349,9 @@ df2 = pl.DataFrame(
 df2.select(expr)
 """:
   nbCode:
-    let df2 = newDataFrame(
-      series("ints", [1, 2, 3, 4]),
-      series("letters", ["A", "B", "C", "D"]))
+    let df2 = newDataFrame:
+      ints: [1, 2, 3, 4]
+      letters: ["A", "B", "C", "D"]
     let expandedNone = df2.select(expr)
     nbShow expandedNone
 

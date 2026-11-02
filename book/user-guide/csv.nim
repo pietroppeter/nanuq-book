@@ -34,9 +34,9 @@ df = pl.DataFrame({"foo": [1, 2, 3], "bar": [None, "bak", "baz"]})
 df.write_csv("data/polars/path.csv")
 """:
   nbCode:
-    let written = newDataFrame(
-      series("foo", [1, 2, 3]),
-      series("bar", [none(string), some("bak"), some("baz")]))
+    let written = newDataFrame:
+      foo: [1, 2, 3]
+      bar: [nil, "bak", "baz"]
     written.writeCsv("data/polars/path.csv")
 
 nanuq """

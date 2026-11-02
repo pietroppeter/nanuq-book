@@ -43,6 +43,7 @@ var book = initBookWithToc:
     entry("Hive partitioning", "hive")
     entry("Excel", "excel")
     entry("Databases", "databases")
+    entry("Arrow producer/consumer", "arrow")
     entry("SQL: introduction", "sql_intro")
     entry("SQL: SELECT", "sql_select")
     entry("SQL: CREATE", "sql_create")

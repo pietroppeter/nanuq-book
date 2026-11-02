@@ -39,6 +39,8 @@ var book = initBookWithToc:
     entry("CSV", "csv")
     entry("Parquet", "parquet")
     entry("JSON files", "json")
+    entry("Multiple files", "multiple_files")
+    entry("Hive partitioning", "hive")
     entry("Excel", "excel")
     entry("Databases", "databases")
     entry("SQL: introduction", "sql_intro")

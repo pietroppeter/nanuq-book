@@ -73,6 +73,9 @@ var book = initBookWithToc:
     entry("Method chaining", "method_chaining")
     entry("Reshaping and tidy data", "tidy")
     entry("Timeseries", "timeseries")
+  section("Real Python tutorials", "real-python/index.md"):
+    entry("Grouping data", "groupby")
+    entry("Missing data", "missing_data")
   section("Benchmarks", "benchmarks/index.md"):
     entry("One Billion Row Challenge", "one_billion_rows")
     entry("PDS-H queries", "pds_h")

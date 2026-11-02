@@ -70,6 +70,16 @@ proc polarsCookbook*(chapter: int, title, changes: string): Source =
          license: "MIT", licenseUrl: "https://github.com/PacktPublishing/Polars-Cookbook/blob/main/LICENSE",
          changes: changes, codeOnly: true)
 
+proc realPython*(title, slug, folder, changes: string): Source =
+  ## A Real Python tutorial, from the code in its materials repository (MIT).
+  Source(title: "“" & title & "” (Real Python)",
+         url: "https://realpython.com/" & slug & "/",
+         authors: "Real Python",
+         license: "MIT", licenseUrl: "https://github.com/realpython/materials/blob/master/LICENSE",
+         changes: "The code is from the tutorial's notebook in the " &
+           "[materials repository](https://github.com/realpython/materials/tree/master/" &
+           folder & "), with its data. " & changes, codeOnly: true)
+
 proc modernPolars*(title, page, changes: string): Source =
   ## A chapter of *Modern Polars* by Kevin Heavey (CC BY 4.0), a side-by-side
   ## comparison of Polars and pandas. The ports keep the Polars side.

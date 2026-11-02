@@ -21,7 +21,7 @@
     "pythonPolars": "2.1.0"
   },
   "timings": {
-    "nanuq": {
+    "nanuq in-memory": {
       "g1": [
         0.567902531,
         0.61623501,

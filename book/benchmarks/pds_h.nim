@@ -1,4 +1,5 @@
 import nanuq, nanuqbook, benchkit, pdsh
+import ../foldcode
 import std/[algorithm, os, json, strutils, osproc, sequtils]
 bookInit()
 
@@ -15,6 +16,8 @@ The data comes from [tpchgen-cli](https://github.com/datafusion-contrib/tpchgen-
 generates the TPC-H tables; it is made on the fly and never stored in the repository.
 PDS-H is derived from TPC-H, but these results are not comparable to published TPC-H
 results. The text is the book's own.
+
+The code of the benchmark is folded under [Source files](#source-files), at the end.
 """
 
 proc tpchData(scale: string): string =
@@ -231,8 +234,8 @@ unique keys with the frame's `unique` (no `Expr.unique`).
 """
 
 nbText: """
-The queries are in [`bench/pdsh.nim`](https://github.com/pietroppeter/nanuq-book/blob/main/bench/pdsh.nim)
-and [`bench/pdsh.py`](https://github.com/pietroppeter/nanuq-book/blob/main/bench/pdsh.py).
+The queries are in [`bench/pdsh.nim`](#src-bench-pdsh-nim)
+and [`bench/pdsh.py`](#src-bench-pdsh-py).
 When the book is built, each one runs on both sides on a small dataset (scale factor
 0.01, about 10 MB of CSV), and the build checks that the two tables are the same.
 """
@@ -266,5 +269,11 @@ scripts/bench pdsh -d:benchLabel=my-laptop  # a name for your machine
 It writes the timings and the machine's specs to a timestamped file in `results/pdsh/`
 and commits it; a pull request with that file adds a run to the tables at the top.
 """
+
+nbSourceFiles:
+  nbFoldCode "bench/pdsh.nim"
+  nbFoldCode "bench/pdsh.py"
+  nbFoldCode "book/benchkit.nim", title = "`book/benchkit.nim`: timing, results and tables of the benchmark chapters"
+  nbFoldCode "scripts/bench", title = "`scripts/bench`: a full run on your machine"
 
 bookSave()

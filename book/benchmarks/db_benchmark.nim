@@ -1,4 +1,5 @@
 import nanuq, nanuqbook, benchkit, dbbench
+import ../foldcode
 import std/[algorithm, os, json, strutils, sequtils]
 bookInit()
 
@@ -13,9 +14,11 @@ nanuq """
 [db-benchmark](https://github.com/duckdblabs/db-benchmark) (started by H2O.ai, now kept by
 DuckDB Labs), licensed under the
 [Mozilla Public License 2.0](https://github.com/pietroppeter/nanuq-book/blob/main/licenses/db-benchmark-MPL-2.0.txt).
-The data generators in `bench/dbbench.nim` follow its R scripts (`groupby-datagen.R` and
+The data generators in [`bench/dbbench.nim`](#src-bench-dbbench-nim) follow its R scripts (`groupby-datagen.R` and
 `join-datagen.R`), with Nim's random numbers, so the values differ from the R ones. The data
 is made on the fly and never stored in the repository. The text is the book's own.
+
+The code of the benchmark is folded under [Source files](#source-files), at the end.
 """
 
 type
@@ -220,8 +223,8 @@ missing values, unsorted variant is set up.
 """
 
 nbText: """
-The questions are in [`bench/dbbench.nim`](https://github.com/pietroppeter/nanuq-book/blob/main/bench/dbbench.nim)
-and [`bench/dbbench.py`](https://github.com/pietroppeter/nanuq-book/blob/main/bench/dbbench.py).
+The questions are in [`bench/dbbench.nim`](#src-bench-dbbench-nim)
+and [`bench/dbbench.py`](#src-bench-dbbench-py).
 When the book is built, each one runs on both sides on 10,000 rows, and the build checks that
 the two tables are the same (sorted by their keys, so that the rows shown match).
 """
@@ -273,5 +276,11 @@ scripts/bench dbbench -d:benchLabel=my-laptop    # a name for your machine
 It writes the timings and the machine's specs to a timestamped file in `results/dbbench/`
 and commits it; a pull request with that file adds a run to the tables at the top.
 """
+
+nbSourceFiles:
+  nbFoldCode "bench/dbbench.nim"
+  nbFoldCode "bench/dbbench.py"
+  nbFoldCode "book/benchkit.nim", title = "`book/benchkit.nim`: timing, results and tables of the benchmark chapters"
+  nbFoldCode "scripts/bench", title = "`scripts/bench`: a full run on your machine"
 
 bookSave()

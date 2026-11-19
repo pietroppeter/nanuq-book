@@ -177,7 +177,7 @@ details.foldcode { margin: 0; border-top: 1px solid var(--rule); border-bottom: 
 details.foldcode + details.foldcode { border-top: 0; }
 details.foldcode:not(:has(+ details.foldcode)) { margin-bottom: 24px; }
 details.foldcode > summary { list-style: none; cursor: pointer; min-height: 44px; padding: 8px 0; display: flex; gap: 10px;
-  align-items: baseline; font: 14px/1.4 var(--mono); }
+  align-items: center; font: 14px/1.4 var(--mono); }
 details.foldcode > summary::-webkit-details-marker { display: none; }
 details.foldcode > summary::before { content: "+"; font-weight: 700; width: 12px; flex: none; color: var(--fjord); }
 details.foldcode[open] > summary::before { content: "−"; }

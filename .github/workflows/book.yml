@@ -54,6 +54,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: true
+          fetch-depth: 0  # a page's review-mode version is the number of commits that changed it
       - name: Use Nanuq's main branch
         if: env.NANUQ_MAIN == 'true'
         run: git -C nanuq fetch --depth 1 origin main && git -C nanuq checkout FETCH_HEAD

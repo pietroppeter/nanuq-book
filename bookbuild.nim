@@ -28,6 +28,11 @@ import std/[os, osproc, json, strutils, sequtils, tables, sets, algorithm, strfo
 import std/sha1
 {.warning[Deprecated]: on.}
 import nanuqbook  # the theme of the pages
+import book/review  # the review mode, added to every page here (not in the chapters, so
+                    # pages whose JSON comes from the published book get it too)
+{.warning[UnusedImport]: off.}
+import book/foldcode  # the folds some chapters add: their blocks, read back from the JSON
+{.warning[UnusedImport]: on.}
 import nimibook/commands
 
 const recordVersion = 1
@@ -197,8 +202,22 @@ proc renderChapter(path, jsonPath: string) =
   nb.doc.sourceFiles = saved.sourceFiles
   for key, value in saved.context:  # what the chapter itself added to the context
     if not nb.doc.context.hasKey(key): nb.doc.context[key] = value
+  addReview(nb)
   nbSave
   setCurrentDir nb.doc.initDir
+
+proc renderMd(path: string): bool =
+  ## A Markdown page, as nimibook's `buildMd` renders it, with the review mode.
+  try:
+    nbInit(theme = useNanuqBook, thisFileRel = path)
+    nbText nb.doc.source
+    addReview(nb)
+    nbSave
+    setCurrentDir nb.doc.initDir
+    true
+  except CatchableError:
+    echo "[bookbuild] error while rendering ", path
+    false
 
 const ownProgram = [
   ## Chapters whose output depends on what ran before them in the same process, so
@@ -366,7 +385,7 @@ proc main =
     if e.isDraft: continue
     if e.path.endsWith(".nim"):
       renderChapter(e.path, "docs" / e.path.changeFileExt("json"))
-    elif not buildMd(e):
+    elif not renderMd(e.path):
       quit 1
   check book
 

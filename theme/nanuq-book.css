@@ -137,3 +137,54 @@ details.nq-source .nq-source-link { font: 1.2rem/1.4 var(--mono); color: var(--m
 .nq-foot { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--rule);
   font: 1.2rem/1.5 var(--mono); color: var(--mute); }
 .content .nq-foot a { color: var(--fjord); }
+
+/* The review mode (book/review.nim, added to every page by bookbuild.nim): its colours from
+   the book's palette, and lengths in px where it uses rem (nimibook's rem is 10px). */
+html.light, html.rust, html.coal, html.navy, html.ayu {
+  --paper: var(--floe); --surface: var(--ice); --line: var(--rule); --shade: var(--rule); --muted: var(--mute);
+  --secondary: var(--fjord); --secondary-soft: color-mix(in oklab, var(--fjord) 22%, var(--floe));
+  --primary-text: #a3332b; --neutral-1: var(--out-bg); --font: var(--display);
+}
+html.coal, html.navy, html.ayu { --primary-text: #f08a7e; }
+.rv-enter { gap: 6px 12px; margin: 8px 0 20px; font: 13px/1.4 var(--mono); }
+.rv-toggle { font: 600 12px/1 var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--fjord);
+  background: var(--floe); border-radius: 6px; padding: 0 12px; }
+mark.rv-mark { color: inherit; }
+body.rv-on { padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px)); }
+.rv-bar { gap: 5px; padding-top: 7px; padding-bottom: calc(7px + env(safe-area-inset-bottom, 0px)); }
+.rv-bar button { padding: 0 9px; }
+.rv-bar .rv-count { min-width: 50px; font-size: 13px; }
+dialog.rv-sheet, .rv-panel { max-width: 640px; }
+dialog.rv-sheet { padding: 16px max(16px, env(safe-area-inset-right, 0px)) 16px max(16px, env(safe-area-inset-left, 0px)); }
+.rv-panel { padding: 8px max(10px, env(safe-area-inset-right, 0px)) 10px max(10px, env(safe-area-inset-left, 0px)); }
+.rv-sheet .rv-where { margin: 0 0 6px; }
+.rv-sheet textarea { margin-top: 3px; padding: 8px; }
+.rv-sheet .rv-actions, .rv-sheet .rv-left { gap: 6px; }
+.rv-sheet button, .rv-bar button { padding-left: 11px; padding-right: 11px; }
+.rv-panel .rv-whole, .rv-panel .rv-state { margin: 0 0 5px; font-size: 13px; }
+.rv-note { min-height: 52px; max-height: 144px; padding: 8px; }
+.rv-thumbs, .rv-shotlist { gap: 8px; }
+.rv-thumb img { height: 72px; }
+.rv-shot { gap: 8px; font-size: 13px; }
+.rv-shot img { height: 44px; }
+.rv-versions { margin: 0 0 12px; }
+.rv-versions li { gap: 8px; padding: 5px 0; }
+.rv-versions .rv-date { font-size: 14px; }
+.rv-versions .rv-n { font-size: 13px; }
+
+/* code, folded under its name and its length (book/foldcode.nim) */
+details.foldcode { margin: 0; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+details.foldcode + details.foldcode { border-top: 0; }
+details.foldcode:not(:has(+ details.foldcode)) { margin-bottom: 24px; }
+details.foldcode > summary { list-style: none; cursor: pointer; min-height: 44px; padding: 8px 0; display: flex; gap: 10px;
+  align-items: center; font: 14px/1.4 var(--mono); }
+details.foldcode > summary::-webkit-details-marker { display: none; }
+details.foldcode > summary::before { content: "+"; font-weight: 700; width: 12px; flex: none; color: var(--fjord); }
+details.foldcode[open] > summary::before { content: "−"; }
+details.foldcode .fc-name { overflow-wrap: anywhere; }
+details.foldcode .fc-name code { background: none; padding: 0; font-size: 1em; }
+details.foldcode .fc-lines { margin-left: auto; font-size: 12px; color: var(--mute); white-space: nowrap; }
+details.foldcode pre { margin: 3px 0 6px; max-height: 70vh; overflow: auto; }
+details.foldcode .fc-path { margin: 0 0 12px; font: 12px/1.4 var(--mono); color: var(--mute); }
+details.foldcode .fc-path code { background: none; padding: 0; }
+.content details.foldcode pre::before { content: none !important; }
